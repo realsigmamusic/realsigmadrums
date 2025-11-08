@@ -265,6 +265,16 @@ struct MyDrumKit {
 				add_to_rr_group_path(49, path.c_str(), 13, true);
 			}
 
+			// Crash 2
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/crash2_overhead_v7_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(49, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/crash2_room_v7_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(49, path.c_str(), 13, true);
+			}
+
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
 		} catch (...) {
 			fprintf(stderr, "MyDrumKit: Erro inesperado ao carregar samples\n");
