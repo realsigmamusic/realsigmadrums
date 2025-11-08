@@ -1,3 +1,5 @@
+// https://github.com/realsigmamusic/realsigmadrums
+
 #include <clap/clap.h>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
@@ -11,7 +13,7 @@
 #include <algorithm>
 #include <cstdint>
 
-#define MYDRUMKIT_ID "realsigmamusic"
+#define MYDRUMKIT_ID "realsigmadrums"
 #define MYDRUMKIT_NAME "Real Sigma Drums"
 #define NUM_OUTPUTS 15
 #define MAX_VOICES 64
@@ -512,7 +514,7 @@ static const clap_plugin_descriptor_t* factory_get_plugin_descriptor(const clap_
 		MYDRUMKIT_ID,
 		MYDRUMKIT_NAME,
 		"Real Sigma Music",
-		"https://github.com/samuelsantanaoficial/realsigmadrums.clap",
+		"https://github.com/realsigmamusic/realsigmadrums",
 		"",
 		"",
 		"1.0.0",
