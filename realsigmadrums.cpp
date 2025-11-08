@@ -188,15 +188,29 @@ struct MyDrumKit {
 			// Racktom 2
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom2_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 4);
+				add_to_rr_group_path(48, path.c_str(), 4);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom2_overhead_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 11, true);
+				add_to_rr_group_path(48, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom2_room_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 13, true);
+				add_to_rr_group_path(48, path.c_str(), 13, true);
+			}
+
+			// Racktom 3
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/racktom3_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(47, path.c_str(), 4);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/racktom3_overhead_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(47, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/racktom3_room_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(47, path.c_str(), 13, true);
 			}
 
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
