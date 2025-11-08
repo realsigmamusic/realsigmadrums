@@ -174,7 +174,7 @@ struct MyDrumKit {
 			// Racktom 1
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom1_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 4);
+				add_to_rr_group_path(50, path.c_str(), 5);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom1_overhead_v8_r" + std::to_string(i) + ".wav";
@@ -188,7 +188,7 @@ struct MyDrumKit {
 			// Racktom 2
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom2_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(48, path.c_str(), 4);
+				add_to_rr_group_path(48, path.c_str(), 6);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom2_overhead_v8_r" + std::to_string(i) + ".wav";
@@ -202,7 +202,7 @@ struct MyDrumKit {
 			// Racktom 3
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom3_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(47, path.c_str(), 4);
+				add_to_rr_group_path(47, path.c_str(), 7);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/racktom3_overhead_v8_r" + std::to_string(i) + ".wav";
@@ -216,7 +216,7 @@ struct MyDrumKit {
 			// Floorom 1
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom1_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(45, path.c_str(), 4);
+				add_to_rr_group_path(45, path.c_str(), 8);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom1_overhead_v8_r" + std::to_string(i) + ".wav";
@@ -230,7 +230,7 @@ struct MyDrumKit {
 			// Floortom 2
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom2_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(43, path.c_str(), 4);
+				add_to_rr_group_path(43, path.c_str(), 9);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom2_overhead_v8_r" + std::to_string(i) + ".wav";
@@ -244,7 +244,7 @@ struct MyDrumKit {
 			// Floortom 3
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom3_v8_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(41, path.c_str(), 4);
+				add_to_rr_group_path(41, path.c_str(), 10);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/floortom3_overhead_v8_r" + std::to_string(i) + ".wav";
