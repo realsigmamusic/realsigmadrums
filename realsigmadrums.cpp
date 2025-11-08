@@ -213,6 +213,20 @@ struct MyDrumKit {
 				add_to_rr_group_path(47, path.c_str(), 13, true);
 			}
 
+			// Floorom 1
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom1_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(45, path.c_str(), 4);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom1_overhead_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(45, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom1_room_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(45, path.c_str(), 13, true);
+			}
+
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
 		} catch (...) {
 			fprintf(stderr, "MyDrumKit: Erro inesperado ao carregar samples\n");
@@ -276,7 +290,7 @@ struct MyDrumKit {
 	                           [&](const RRGroup& g){ return g.output == output; });
 
 	    if (it == noteGroups.end()) {
-	        // cria novo grupo (novo mic)c
+	        // cria novo grupo (novo mic)
 	        RRGroup g;
 	        g.output = output;
 	        g.samples.push_back(std::move(s));
@@ -317,7 +331,7 @@ struct MyDrumKit {
 	}
 };
 
-// ---------- CLAP: note ports extension (CRÍTICO para ser reconhecido como instrumento) ----------
+// ---------- (CRÍTICO para ser reconhecido como instrumento) não mexa aqui não! ----------
 static uint32_t note_ports_count(const clap_plugin_t* plugin, bool is_input) {
 	return is_input ? 1u : 0u; // 1 entrada MIDI
 }
@@ -371,7 +385,6 @@ static bool audio_ports_get(const clap_plugin_t* plugin, uint32_t index, bool is
 	info->channel_count = 1;
 	info->port_type = CLAP_PORT_MONO;
 
-	// SÓ A PRIMEIRA É MAIN
 	if (index == 0) {
 		info->flags = CLAP_AUDIO_PORT_IS_MAIN;
 	} else {
@@ -459,7 +472,6 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 	for (int i = 0; i < NUM_OUTPUTS; ++i) self->outputs[i] = nullptr;
 
 	if (process->audio_outputs_count > 0) {
-		// Reaper geralmente passa múltiplos buffers mono
 		for (uint32_t i = 0; i < process->audio_outputs_count && i < (uint32_t)NUM_OUTPUTS; ++i) {
 			const clap_audio_buffer_t* buf = &process->audio_outputs[i];
 			if (buf && buf->channel_count > 0 && buf->data32) {
@@ -484,6 +496,7 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 				uint8_t note   = midi->data[1];
 				uint8_t vel	= midi->data[2];
 
+				// só pra conferir se está tudo ok...
 				//fprintf(stderr, "[Real Sigma Drums] MIDI: status=0x%02X note=%d vel=%d\n", status, note, vel);
 
 				if (status == 0x90 && vel > 0) {  // Note ON
@@ -522,7 +535,7 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 						
 				            self->voices.push_back(v);
 						
-				            // limite simples de vozes
+				            // limite de vozes para não bugar tudo na hora do play
 				            if (self->voices.size() > MAX_VOICES)
 				                self->voices.erase(self->voices.begin());
 				        }
