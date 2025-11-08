@@ -241,6 +241,20 @@ struct MyDrumKit {
 				add_to_rr_group_path(43, path.c_str(), 13, true);
 			}
 
+			// Floortom 3
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom3_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(41, path.c_str(), 4);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom3_overhead_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(41, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/floortom3_room_v8_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(41, path.c_str(), 13, true);
+			}
+
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
 		} catch (...) {
 			fprintf(stderr, "MyDrumKit: Erro inesperado ao carregar samples\n");

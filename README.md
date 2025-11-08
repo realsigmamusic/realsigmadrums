@@ -13,3 +13,4 @@ racktom2    |7            |1
 racktom3    |7            |1
 floortom1   |7            |1
 floortom2   |7            |1
+floortom3   |7            |1
