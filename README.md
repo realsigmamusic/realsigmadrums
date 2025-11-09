@@ -48,6 +48,11 @@ O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
 | 51, 53, 59 | Ride (bow/bell/edge)       | OH L/R, Room L/R              |
 | 52, 55     | China, Splash              | OH L/R, Room L/R              |
 
+## Aviso Importante
+
+Se você carregar o plugin em modo estéreo simples, apenas o som do bumbo (kick) será reproduzido.
+Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltiplas saídas e ative as demais faixas de áudio do plugin.
+
 ## Output Channels
 1. Kick In
 2. Kick Out
