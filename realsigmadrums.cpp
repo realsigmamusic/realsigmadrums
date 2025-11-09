@@ -306,13 +306,23 @@ struct MyDrumKit {
 			}
 
 			// China
-			for (int i = 1; i <= 5; ++i) {
+			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/china_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(52, path.c_str(), 11, true);
 			}
-			for (int i = 1; i <= 5; ++i) {
+			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/china_room_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(52, path.c_str(), 13, true);
+			}
+
+			// Splash
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/splash_overhead_v5_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(55, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/splash_room_v5_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(55, path.c_str(), 13, true);
 			}
 
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
