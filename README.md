@@ -13,7 +13,6 @@ Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW c
 - [x] Choke groups (hi-hat)
 - [x] Curva de velocity quadrática
 - [x] Samples estéreo nos overheads/room
-- [ ] Velocity layers
 - [ ] Interface gráfica
 - [ ] Windows & macOS builds
 
