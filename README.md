@@ -1,28 +1,33 @@
 # Real Sigma Drums
 
-## Samples
+Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW com suporte a CLAP.
 
-Note MIDI|Articulação |Round Robins |Velocity Layers
----------|------------|-------------|--------
-35 & 36  |kick        |8            |9*
-37       |sidestick   |4            |4*
-38 & 40  |snare       |9            |7*
-41       |floortom 3  |7            |7*
-42       |hihat closed|7            |6*
-43       |floortom 2  |7            |8*
-44       |hihat pedal |7            |4*
-45       |floortom 1  |7            |8*
-46       |hihat open  |7            |6*
-47       |racktom 3   |7            |8*
-48       |racktom 2   |7            |8*
-49       |crash 1     |7            |7*
-50       |racktom 1   |7            |8*
-51       |ride        |6            |6*
-52       |china       |7            |6*
-53       |ride bell   |7            |5*
-55       |splash      |7            |5*
-57       |crash 2     |7            |7*
-59       |ride edge   |5            |4*
+## [DOWNLOAD](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
+## MIDI Map
+
+| Note MIDI | Articulação  |
+| --------- | ------------ |
+| 35        | kick         |
+| 36        | kick         |
+| 37        | sidestick    |
+| 38        | snare        |
+| 40        | snare        |
+| 41        | floortom 3   |
+| 42        | hihat closed |
+| 43        | floortom 2   |
+| 44        | hihat pedal  |
+| 45        | floortom 1   |
+| 46        | hihat open   |
+| 47        | racktom 3    |
+| 48        | racktom 2    |
+| 49        | crash 1      |
+| 50        | racktom 1    |
+| 51        | ride         |
+| 52        | china        |
+| 53        | ride bell    |
+| 55        | splash       |
+| 57        | crash 2      |
+| 59        | ride edge    |
 
 ## Outputs 
 1. Kick In
