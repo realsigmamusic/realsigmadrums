@@ -2,6 +2,8 @@
 
 Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW com suporte a CLAP.
 
+[![CLAP](https://img.shields.io/badge/CLAP-Plugin-blue)](https://github.com/free-audio/clap)
+
 <img width="1366" height="723" alt="image" src="https://github.com/user-attachments/assets/31393da0-3377-4e9e-9ce0-e77d225986bc" />
 
 - [x] Plugin CLAP
@@ -13,6 +15,7 @@ Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW c
 - [x] Samples estéreo nos overheads/room
 - [ ] Velocity layers
 - [ ] Interface gráfica
+- [ ] Windows & macOS builds
 
 ## [DOWNLOAD](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
 
@@ -34,32 +37,19 @@ chmod +x install.sh
 O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
 
 
-## MIDI Map
-| Note MIDI | Articulação  |
-| --------- | ------------ |
-| 35        | kick         |
-| 36        | kick         |
-| 37        | sidestick    |
-| 38        | snare        |
-| 40        | snare        |
-| 41        | floortom 3   |
-| 42        | hihat closed |
-| 43        | floortom 2   |
-| 44        | hihat pedal  |
-| 45        | floortom 1   |
-| 46        | hihat open   |
-| 47        | racktom 3    |
-| 48        | racktom 2    |
-| 49        | crash 1      |
-| 50        | racktom 1    |
-| 51        | ride         |
-| 52        | china        |
-| 53        | ride bell    |
-| 55        | splash       |
-| 57        | crash 2      |
-| 59        | ride edge    |
+| Note       | Instrument                 | Outputs                       |
+|------------|----------------------------|-------------------------------|
+| 35-36      | Kick                       | In, Out, OH L/R, Room L/R     |
+| 37         | Sidestick                  | Top, Bottom, OH L/R, Room L/R |
+| 38, 40     | Snare                      | Top, Bottom, OH L/R, Room L/R |
+| 42, 44, 46 | Hi-Hat (closed/pedal/open) | Mic, OH L/R, Room L/R         |
+| 50, 48, 47 | Rack Toms                  | Mic, OH L/R, Room L/R         |
+| 45, 43, 41 | Floor Toms                 | Mic, OH L/R, Room L/R         |
+| 49, 57     | Crashes                    | OH L/R, Room L/R              |
+| 51, 53, 59 | Ride (bow/bell/edge)       | OH L/R, Room L/R              |
+| 52, 55     | China, Splash              | OH L/R, Room L/R              |
 
-## Outputs 
+## Output Channels
 1. Kick In
 2. Kick Out
 3. Snare Top
