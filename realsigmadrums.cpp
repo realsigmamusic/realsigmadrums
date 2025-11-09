@@ -275,6 +275,36 @@ struct MyDrumKit {
 				add_to_rr_group_path(49, path.c_str(), 13, true);
 			}
 
+			// Ride Closed
+			for (int i = 1; i <= 6; ++i) {
+				std::string path = base + "/ride_overhead_v6_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(51, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 6; ++i) {
+				std::string path = base + "/ride_room_v6_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(51, path.c_str(), 13, true);
+			}
+
+			// Ride Bell
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/ride_bell_overhead_v5_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(53, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 7; ++i) {
+				std::string path = base + "/ride_bell_room_v5_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(53, path.c_str(), 13, true);
+			}
+
+			// Ride Edge
+			for (int i = 1; i <= 5; ++i) {
+				std::string path = base + "/ride_edge_overhead_v4_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(59, path.c_str(), 11, true);
+			}
+			for (int i = 1; i <= 5; ++i) {
+				std::string path = base + "/ride_edge_room_v4_r" + std::to_string(i) + ".wav";
+				add_to_rr_group_path(59, path.c_str(), 13, true);
+			}
+
 			fprintf(stderr, "MyDrumKit: %zu notas carregadas (CLAP)\n", rr_groups.size());
 		} catch (...) {
 			fprintf(stderr, "MyDrumKit: Erro inesperado ao carregar samples\n");
