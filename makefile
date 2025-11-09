@@ -18,7 +18,7 @@ $(PAK):
 install: $(PLUGIN).clap
 	mkdir -p ~/.clap/$(PLUGIN).clap
 	mv $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
-	cp $(PAK) ~/.clap/$(PLUGIN).clap/
+	mv $(PAK) ~/.clap/$(PLUGIN).clap/
 	@echo "✓ CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
 
 clean:
