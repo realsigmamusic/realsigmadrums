@@ -1,10 +1,37 @@
 # Real Sigma Drums
 
 Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW com suporte a CLAP.
+[x] Plugin CLAP
+[x] 15 canais multi-mic
+[x] Round robin
+[x] Samples empacotados em .pak
+[x] Choke groups (hi-hat)
+[x] Curva de velocity quadrática
+[x] Samples estéreo nos overheads/room
+[ ] Velocity layers
+[ ] Interface gráfica
 
 ## [DOWNLOAD](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
-## MIDI Map
 
+## Conteúdo do pacote
+```
+RealSigmaDrums.zip/
+├── install.sh
+└── realsigmadrums.clap/
+    ├── plugin.clap
+    └── sounds.pak
+```
+
+## Instalação
+- Dê permissão de execução ao instalador *(apenas na primeira vez)*:
+```bash
+chmod +x install.sh
+```
+- Execute *dois cliques ou `./install.sh`* o arquivo `install.sh`.
+O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
+
+
+## MIDI Map
 | Note MIDI | Articulação  |
 | --------- | ------------ |
 | 35        | kick         |
