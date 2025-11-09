@@ -18,6 +18,47 @@
 #define NUM_OUTPUTS 15
 #define MAX_VOICES 64
 
+// Leitor de .pak
+struct PakReader {
+    std::ifstream file;
+    std::map<std::string, std::pair<uint64_t, uint64_t>> index; // path -> (offset, size)
+    
+    bool open(const std::string& pakPath) {
+        file.open(pakPath, std::ios::binary);
+        if (!file) return false;
+        
+        uint32_t count;
+        file.read((char*)&count, sizeof(count));
+        
+        for (uint32_t i = 0; i < count; ++i) {
+            uint32_t len;
+            file.read((char*)&len, sizeof(len));
+            
+            std::string path(len, '\0');
+            file.read(&path[0], len);
+            
+            uint64_t offset, size;
+            file.read((char*)&offset, sizeof(offset));
+            file.read((char*)&size, sizeof(size));
+            
+            index[path] = {offset, size};
+        }
+        
+        fprintf(stderr, "[PakReader] Carregado: %u arquivos\n", count);
+        return true;
+    }
+    
+    std::vector<char> read(const std::string& path) {
+        auto it = index.find(path);
+        if (it == index.end()) return {};
+        
+        file.seekg(it->second.first);
+        std::vector<char> data(it->second.second);
+        file.read(data.data(), data.size());
+        return data;
+    }
+};
+
 struct Sample {
 	std::vector<float> dataL;
 	std::vector<float> dataR;
