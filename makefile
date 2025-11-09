@@ -4,7 +4,7 @@ LDFLAGS += -shared -lsndfile
 
 all: $(PLUGIN).clap
 
-$(PLUGIN).clap: $(PLUGIN).cpp
+$(PLUGIN).clap: main.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
 
 install: $(PLUGIN).clap
