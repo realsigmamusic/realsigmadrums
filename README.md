@@ -1,6 +1,9 @@
 # Real Sigma Drums
 
 Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW com suporte a CLAP.
+
+<img width="1366" height="723" alt="image" src="https://github.com/user-attachments/assets/31393da0-3377-4e9e-9ce0-e77d225986bc" />
+
 - [x] Plugin CLAP
 - [x] 15 canais multi-mic
 - [x] Round robin
