@@ -27,7 +27,7 @@ RealSigmaDrums.zip/
 ```bash
 chmod +x install.sh
 ```
-- Execute *(dois cliques ou* `./install.sh`) *no terminal* o arquivo `install.sh`.
+- Execute *(dois cliques ou* `./install.sh` *no terminal)* o arquivo `install.sh`.
 O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
 
 
