@@ -1,4 +1,5 @@
-// Já esta tudo funcionando não mexa em nada não!
+// para gerar o bin
+// g++ soundmaker.cpp -o ../build/soundmaker -lsndfile
 
 #include <sndfile.h>
 #include <filesystem>
