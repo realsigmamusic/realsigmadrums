@@ -4,6 +4,7 @@
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
 #include <sndfile.h>
+#include <fstream> 
 #include <vector>
 #include <map>
 #include <cstring>
@@ -96,6 +97,7 @@ struct MyDrumKit {
 	std::vector<Voice> voices;
 	float* outputs[NUM_OUTPUTS];
 	double sample_rate = 44100.0;
+	PakReader pak;
 
 	MyDrumKit() {
 		for (int i = 0; i < NUM_OUTPUTS; ++i) outputs[i] = nullptr;
@@ -105,105 +107,105 @@ struct MyDrumKit {
 		try {
 			// Kick (35 & 36)
 			for (int i = 1; i <= 8; ++i) {
-				std::string path = base + "/kick_in_v9_r" + std::to_string(i) + ".wav";
+				std::string path = "kick_in_v9_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(35, path.c_str(), 0);
 				add_to_rr_group_path(36, path.c_str(), 0);
 			}
 			for (int i = 1; i <= 8; ++i) {
-				std::string path = base + "/kick_out_v9_r" + std::to_string(i) + ".wav";
+				std::string path = "kick_out_v9_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(35, path.c_str(), 1);
 				add_to_rr_group_path(36, path.c_str(), 1);
 			}
 			for (int i = 1; i <= 8; ++i) {
-				std::string path = base + "/kick_overhead_v9_r" + std::to_string(i) + ".wav";
+				std::string path = "kick_overhead_v9_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(35, path.c_str(), 11, true);
 				add_to_rr_group_path(36, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 8; ++i) {
-				std::string path = base + "/kick_room_v9_r" + std::to_string(i) + ".wav";
+				std::string path = "kick_room_v9_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(35, path.c_str(), 13, true);
 				add_to_rr_group_path(36, path.c_str(), 13, true);
 			}
 
 			// Sidestick (37)
 			for (int i = 1; i <= 4; ++i) {
-				std::string path = base + "/sidestick_top_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "sidestick_top_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(37, path.c_str(), 2);
 			}
 			for (int i = 1; i <= 4; ++i) {
-				std::string path = base + "/sidestick_bottom_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "sidestick_bottom_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(37, path.c_str(), 3);
 			}
 			for (int i = 1; i <= 4; ++i) {
-				std::string path = base + "/sidestick_overhead_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "sidestick_overhead_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(37, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 4; ++i) {
-				std::string path = base + "/sidestick_room_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "sidestick_room_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(37, path.c_str(), 13, true);
 			}
 
 			// Snare (38 and 40)
 			for (int i = 1; i <= 9; ++i) {
-				std::string path = base + "/snare_top_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "snare_top_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(38, path.c_str(), 2);
 				add_to_rr_group_path(40, path.c_str(), 2);
 			}
 			for (int i = 1; i <= 9; ++i) {
-				std::string path = base + "/snare_bottom_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "snare_bottom_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(38, path.c_str(), 3);
 				add_to_rr_group_path(40, path.c_str(), 3);
 			}
 			for (int i = 1; i <= 9; ++i) {
-				std::string path = base + "/snare_overhead_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "snare_overhead_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(38, path.c_str(), 11, true);
 				add_to_rr_group_path(40, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 9; ++i) {
-				std::string path = base + "/snare_room_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "snare_room_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(38, path.c_str(), 13, true);
 				add_to_rr_group_path(40, path.c_str(), 13, true);
 			}
 
 			// HiHat Closed
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_closed_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_closed_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(42, path.c_str(), 4);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_closed_overhead_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_closed_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(42, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_closed_room_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_closed_room_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(42, path.c_str(), 13, true);
 			}
 
 			// HiHat Pedal
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_pedal_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_pedal_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(44, path.c_str(), 4);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_pedal_overhead_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_pedal_overhead_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(44, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_pedal_room_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_pedal_room_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(44, path.c_str(), 13, true);
 			}
 
 			// HiHat Open
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_open_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_open_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(46, path.c_str(), 4);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_open_overhead_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_open_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(46, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/hihat_open_room_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "hihat_open_room_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(46, path.c_str(), 13, true);
 			}
 
@@ -214,155 +216,155 @@ struct MyDrumKit {
 
 			// Racktom 1
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom1_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom1_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(50, path.c_str(), 5);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom1_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom1_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(50, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom1_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom1_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(50, path.c_str(), 13, true);
 			}
 
 			// Racktom 2
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom2_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom2_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(48, path.c_str(), 6);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom2_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom2_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(48, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom2_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom2_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(48, path.c_str(), 13, true);
 			}
 
 			// Racktom 3
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom3_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom3_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(47, path.c_str(), 7);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom3_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom3_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(47, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/racktom3_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "racktom3_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(47, path.c_str(), 13, true);
 			}
 
 			// Floorom 1
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom1_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom1_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(45, path.c_str(), 8);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom1_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom1_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(45, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom1_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom1_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(45, path.c_str(), 13, true);
 			}
 
 			// Floortom 2
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom2_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom2_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(43, path.c_str(), 9);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom2_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom2_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(43, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom2_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom2_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(43, path.c_str(), 13, true);
 			}
 
 			// Floortom 3
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom3_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom3_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(41, path.c_str(), 10);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom3_overhead_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom3_overhead_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(41, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/floortom3_room_v8_r" + std::to_string(i) + ".wav";
+				std::string path = "floortom3_room_v8_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(41, path.c_str(), 13, true);
 			}
 
 			// Crash 1
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/crash1_overhead_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "crash1_overhead_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(49, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/crash1_room_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "crash1_room_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(49, path.c_str(), 13, true);
 			}
 
 			// Crash 2
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/crash2_overhead_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "crash2_overhead_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(57, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/crash2_room_v7_r" + std::to_string(i) + ".wav";
+				std::string path = "crash2_room_v7_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(57, path.c_str(), 13, true);
 			}
 
 			// Ride
 			for (int i = 1; i <= 6; ++i) {
-				std::string path = base + "/ride_overhead_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(51, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 6; ++i) {
-				std::string path = base + "/ride_room_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_room_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(51, path.c_str(), 13, true);
 			}
 
 			// Ride Bell
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/ride_bell_overhead_v5_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_bell_overhead_v5_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(53, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/ride_bell_room_v5_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_bell_room_v5_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(53, path.c_str(), 13, true);
 			}
 
 			// Ride Edge
 			for (int i = 1; i <= 5; ++i) {
-				std::string path = base + "/ride_edge_overhead_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_edge_overhead_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(59, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 5; ++i) {
-				std::string path = base + "/ride_edge_room_v4_r" + std::to_string(i) + ".wav";
+				std::string path = "ride_edge_room_v4_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(59, path.c_str(), 13, true);
 			}
 
 			// China
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/china_overhead_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "china_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(52, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/china_room_v6_r" + std::to_string(i) + ".wav";
+				std::string path = "china_room_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(52, path.c_str(), 13, true);
 			}
 
 			// Splash
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/splash_overhead_v5_r" + std::to_string(i) + ".wav";
+				std::string path = "splash_overhead_v5_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(55, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
-				std::string path = base + "/splash_room_v5_r" + std::to_string(i) + ".wav";
+				std::string path = "splash_room_v5_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(55, path.c_str(), 13, true);
 			}
 
@@ -374,68 +376,104 @@ struct MyDrumKit {
 		return true;
 	}
 
-	static Sample load_wav(const char* path, bool force_stereo = false) {
-		SF_INFO info{};
-		SNDFILE* file = sf_open(path, SFM_READ, &info);
-		Sample s;
-		if (!file) {
-			fprintf(stderr, "MyDrumKit: Erro ao carregar %s: %s\n", path, sf_strerror(nullptr));
-			return s;
-		}
-		s.channels = info.channels;
-		s.sampleRate = info.samplerate;
-		sf_count_t frames = info.frames;
-		if (frames <= 0 || info.channels <= 0) {
-			sf_close(file);
-			return s;
-		}
-		std::vector<float> tmp(frames * info.channels);
-		sf_count_t read = sf_read_float(file, tmp.data(), tmp.size());
-		sf_close(file);
-		if (force_stereo && info.channels >= 2) {
-			s.is_stereo = true;
-			s.dataL.resize(frames);
-			s.dataR.resize(frames);
-			for (sf_count_t i = 0; i < frames; ++i) {
-				s.dataL[i] = tmp[i * info.channels + 0];
-				s.dataR[i] = tmp[i * info.channels + 1];
-			}
-			s.channels = 2;
-		} else if (info.channels == 1) {
-			s.is_stereo = false;
-			s.dataL = std::move(tmp);
-			s.channels = 1;
-		} else {
-			s.is_stereo = false;
-			s.dataL.resize(frames);
-			for (sf_count_t i = 0; i < frames; ++i) {
-				float sum = 0.0f;
-				for (int c = 0; c < info.channels; ++c) sum += tmp[i * info.channels + c];
-				s.dataL[i] = sum / (float)info.channels;
-			}
-			s.channels = 1;
-		}
-		return s;
+	static Sample load_wav(const char* data, size_t size, bool force_stereo = false) {
+	    SF_INFO info{};
+	    SF_VIRTUAL_IO vio;
+		
+	    struct MemFile {
+	        const char* data;
+	        size_t size;
+	        size_t pos;
+	    } memfile = {data, size, 0};
+	
+	    vio.get_filelen = [](void* user_data) -> sf_count_t {
+	        return ((MemFile*)user_data)->size;
+	    };
+	    vio.seek = [](sf_count_t offset, int whence, void* user_data) -> sf_count_t {
+	        MemFile* mf = (MemFile*)user_data;
+	        switch (whence) {
+	            case SEEK_SET: mf->pos = offset; break;
+	            case SEEK_CUR: mf->pos += offset; break;
+	            case SEEK_END: mf->pos = mf->size + offset; break;
+	        }
+	        if (mf->pos > mf->size) mf->pos = mf->size;
+	        return mf->pos;
+	    };
+	    vio.read = [](void* ptr, sf_count_t count, void* user_data) -> sf_count_t {
+	        MemFile* mf = (MemFile*)user_data;
+	        sf_count_t to_read = std::min((sf_count_t)(mf->size - mf->pos), count);
+	        memcpy(ptr, mf->data + mf->pos, to_read);
+	        mf->pos += to_read;
+	        return to_read;
+	    };
+	    vio.write = [](const void*, sf_count_t, void*) -> sf_count_t { return 0; };
+	    vio.tell = [](void* user_data) -> sf_count_t {
+	        return ((MemFile*)user_data)->pos;
+	    };
+	
+	    SNDFILE* file = sf_open_virtual(&vio, SFM_READ, &info, &memfile);
+	    Sample s;
+	    if (!file) return s;
+	
+	    s.channels = info.channels;
+	    s.sampleRate = info.samplerate;
+	    sf_count_t frames = info.frames;
+	    if (frames <= 0 || info.channels <= 0) {
+	        sf_close(file);
+	        return s;
+	    }
+	
+	    std::vector<float> tmp(frames * info.channels);
+	    sf_read_float(file, tmp.data(), tmp.size());
+	    sf_close(file);
+	
+	    if (force_stereo && info.channels >= 2) {
+	        s.is_stereo = true;
+	        s.dataL.resize(frames);
+	        s.dataR.resize(frames);
+	        for (sf_count_t i = 0; i < frames; ++i) {
+	            s.dataL[i] = tmp[i * info.channels + 0];
+	            s.dataR[i] = tmp[i * info.channels + 1];
+	        }
+	        s.channels = 2;
+	    } else if (info.channels == 1) {
+	        s.is_stereo = false;
+	        s.dataL = std::move(tmp);
+	        s.channels = 1;
+	    } else {
+	        s.is_stereo = false;
+	        s.dataL.resize(frames);
+	        for (sf_count_t i = 0; i < frames; ++i) {
+	            float sum = 0.0f;
+	            for (int c = 0; c < info.channels; ++c) sum += tmp[i * info.channels + c];
+	            s.dataL[i] = sum / (float)info.channels;
+	        }
+	        s.channels = 1;
+	    }
+	    return s;
 	}
 
-	void add_to_rr_group_path(int note, const char* fullpath, int output, bool stereo = false) {
-	    Sample s = load_wav(fullpath, stereo);
-	    if (s.dataL.empty())
+	void add_to_rr_group_path(int note, const char* relpath, int output, bool stereo = false) {
+	    // Lê do .pak
+	    auto data = pak.read(relpath);
+	    if (data.empty()) {
+	        fprintf(stderr, "Sample não encontrado no pak: %s\n", relpath);
 	        return;
+	    }
+	
+	    Sample s = load_wav(data.data(), data.size(), stereo);
+	    if (s.dataL.empty()) return;
 
-	    // verifica se já existe grupo com mesmo output (mesmo mic)
 	    auto& noteGroups = rr_groups[note];
 	    auto it = std::find_if(noteGroups.begin(), noteGroups.end(),
 	                           [&](const RRGroup& g){ return g.output == output; });
 
 	    if (it == noteGroups.end()) {
-	        // cria novo grupo (novo mic)
 	        RRGroup g;
 	        g.output = output;
 	        g.samples.push_back(std::move(s));
 	        noteGroups.push_back(std::move(g));
 	    } else {
-	        // adiciona round robin dentro do mesmo mic
 	        it->samples.push_back(std::move(s));
 	    }
 	}
@@ -560,13 +598,20 @@ static bool my_activate(const clap_plugin_t* plugin, double sr, uint32_t min_fra
 	fprintf(stderr, "[Real Sigma Drums] CLAP activate SR=%.1f, min=%u, max=%u\n", sr, min_frames, max_frames);
 
 	if (self->rr_groups.empty()) {
-		const char* home = getenv("HOME");
-		if (!home) home = ".";
-		std::string samples_dir = std::string(home) + "/.clap/realsigmadrums.clap/samples";
-		fprintf(stderr, "[Real Sigma Drums] Carregando samples de: %s\n", samples_dir.c_str());
-		if (!self->loadSamplesFromFolder(samples_dir)) {
-			fprintf(stderr, "[Real Sigma Drums] AVISO: Erro ao carregar samples\n");
-		}
+	    const char* home = getenv("HOME");
+	    if (!home) home = ".";
+	    std::string pak_path = std::string(home) + "/.clap/realsigmadrums.clap/sounds.pak";
+		
+	    fprintf(stderr, "[Real Sigma Drums] Abrindo pak: %s\n", pak_path.c_str());
+		
+	    if (!self->pak.open(pak_path)) {
+	        fprintf(stderr, "[Real Sigma Drums] ERRO: não conseguiu abrir %s\n", pak_path.c_str());
+	        return false;
+	    }
+	
+	    if (!self->loadSamplesFromFolder("")) {
+	        fprintf(stderr, "[Real Sigma Drums] AVISO: Erro ao carregar samples\n");
+	    }
 	}
 	return true;
 }

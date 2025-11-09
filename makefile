@@ -3,7 +3,7 @@ LDFLAGS += -shared -lsndfile
 PLUGIN = realsigmadrums
 PAK = sounds.pak
 
-all: $(PAK) $(PLUGIN).clap
+all: $(PLUGIN).clap
 
 $(PLUGIN).clap: main.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
@@ -18,7 +18,7 @@ $(PAK):
 install: $(PLUGIN).clap
 	mkdir -p ~/.clap/$(PLUGIN).clap
 	mv $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
-	mv $(PAK) ~/.clap/$(PLUGIN).clap/
+	cp $(PAK) ~/.clap/$(PLUGIN).clap/
 	@echo "✓ CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
 
 clean:
