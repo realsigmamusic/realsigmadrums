@@ -268,14 +268,14 @@ struct MyDrumKit {
 			// Crash 2
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/crash2_overhead_v7_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(49, path.c_str(), 11, true);
+				add_to_rr_group_path(57, path.c_str(), 11, true);
 			}
 			for (int i = 1; i <= 7; ++i) {
 				std::string path = base + "/crash2_room_v7_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(49, path.c_str(), 13, true);
+				add_to_rr_group_path(57, path.c_str(), 13, true);
 			}
 
-			// Ride Closed
+			// Ride
 			for (int i = 1; i <= 6; ++i) {
 				std::string path = base + "/ride_overhead_v6_r" + std::to_string(i) + ".wav";
 				add_to_rr_group_path(51, path.c_str(), 11, true);
