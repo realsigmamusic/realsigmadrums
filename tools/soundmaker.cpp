@@ -1,3 +1,5 @@
+// Já esta tudo funcionando não mexa em nada não!
+
 #include <sndfile.h>
 #include <filesystem>
 #include <fstream>
