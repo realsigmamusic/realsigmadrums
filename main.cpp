@@ -756,7 +756,7 @@ static const clap_plugin_descriptor_t* factory_get_plugin_descriptor(const clap_
 		"https://github.com/realsigmamusic/realsigmadrums",
 		"",
 		"",
-		"1.0.0",
+		"1.1.0",
 		"Acoustic drum sampler",
 		features
 	};
