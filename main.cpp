@@ -1,8 +1,9 @@
-// https://github.com/realsigmamusic/realsigmadrums
+// httpc://github.com/realsigmamusic/realsigmadrums
 
 #include <clap/clap.h>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
+#include <clap/ext/gui.h>
 #include <sndfile.h>
 #include <fstream> 
 #include <vector>
@@ -13,11 +14,29 @@
 #include <string>
 #include <algorithm>
 #include <cstdint>
+#include <X11/Xlib.h>
+#include <cairo/cairo.h>
+#include <cairo/cairo-xlib.h>
+#include "wallpaper.h"
+#include <stdlib.h>
 
 #define MYDRUMKIT_ID "realsigmadrums"
 #define MYDRUMKIT_NAME "Real Sigma Drums"
 #define NUM_OUTPUTS 15
 #define MAX_VOICES 64
+
+// Forward declarations
+struct PluginUI;
+static bool ui_create(PluginUI* ui, int width, int height);
+static void ui_destroy(PluginUI* ui);
+
+// Estrutura da UI
+struct PluginUI {
+    Display* display = nullptr;
+    Window window = 0;
+    cairo_surface_t* surface = nullptr;
+    cairo_t* cr = nullptr;
+};
 
 // Leitor de .pak
 struct PakReader {
@@ -98,6 +117,8 @@ struct MyDrumKit {
 	float* outputs[NUM_OUTPUTS];
 	double sample_rate = 44100.0;
 	PakReader pak;
+
+	PluginUI* ui = nullptr;
 
 	MyDrumKit() {
 		for (int i = 0; i < NUM_OUTPUTS; ++i) outputs[i] = nullptr;
@@ -508,6 +529,121 @@ struct MyDrumKit {
 	}
 };
 
+// ---------- UI Implementation ----------
+static bool ui_create(PluginUI* ui, int width, int height) {
+    ui->display = XOpenDisplay(nullptr);
+    if (!ui->display) return false;
+
+    int screen = DefaultScreen(ui->display);
+    Window root = RootWindow(ui->display, screen);
+
+    ui->window = XCreateSimpleWindow(ui->display, root, 200, 200, width, height, 1,
+                                     BlackPixel(ui->display, screen), BlackPixel(ui->display, screen));
+    XStoreName(ui->display, ui->window, "Real Sigma Drums");
+    XMapWindow(ui->display, ui->window);
+
+    ui->surface = cairo_xlib_surface_create(ui->display, ui->window,
+                                            DefaultVisual(ui->display, screen),
+                                            width, height);
+    ui->cr = cairo_create(ui->surface);
+
+    // Fundo preto
+    cairo_set_source_rgb(ui->cr, 0, 0, 0);
+    cairo_paint(ui->cr);
+
+    // Desenhar imagem PNG embutida
+    cairo_surface_t* img = cairo_image_surface_create_from_png_stream(
+        [](void* closure, unsigned char* data, unsigned int length) -> cairo_status_t {
+            static size_t offset = 0;
+            unsigned char* png = (unsigned char*)wallpaper_png;
+            size_t png_len = wallpaper_png_len;
+
+            if (offset + length > png_len) length = png_len - offset;
+            memcpy(data, png + offset, length);
+            offset += length;
+            if (offset >= png_len) offset = 0;
+            return CAIRO_STATUS_SUCCESS;
+        },
+        nullptr
+    );
+
+    if (cairo_surface_status(img) == CAIRO_STATUS_SUCCESS) {
+        cairo_set_source_surface(ui->cr, img, 0, 0);
+        cairo_paint(ui->cr);
+        cairo_surface_destroy(img);
+    }
+
+    cairo_surface_flush(ui->surface);
+    XFlush(ui->display);
+
+    return true;
+}
+
+static void ui_destroy(PluginUI* ui) {
+    if (!ui) return;
+    if (ui->cr) cairo_destroy(ui->cr);
+    if (ui->surface) cairo_surface_destroy(ui->surface);
+    if (ui->window) XDestroyWindow(ui->display, ui->window);
+    if (ui->display) XCloseDisplay(ui->display);
+}
+
+// ---------- GUI Extension ----------
+static const clap_plugin_gui_t gui_extension = {
+    .is_api_supported = [](const clap_plugin_t* plugin, const char* api, bool is_floating) -> bool {
+        return !strcmp(api, CLAP_WINDOW_API_X11);
+    },
+    .get_preferred_api = [](const clap_plugin_t* plugin, const char** api, bool* is_floating) -> bool {
+        *api = CLAP_WINDOW_API_X11;
+        *is_floating = false;
+        return true;
+    },
+    .create = [](const clap_plugin_t* plugin, const char* api, bool is_floating) -> bool {
+        MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
+        self->ui = new PluginUI();
+        return ui_create(self->ui, 800, 200);
+    },
+    .destroy = [](const clap_plugin_t* plugin) {
+        MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
+        if (self->ui) { ui_destroy(self->ui); delete self->ui; self->ui = nullptr; }
+    },
+    .set_scale = [](const clap_plugin_t* plugin, double scale) -> bool { return true; },
+    .get_size = [](const clap_plugin_t* plugin, uint32_t* width, uint32_t* height) -> bool {
+        *width = 800;
+        *height = 200;
+        return true;
+    },
+    .can_resize = [](const clap_plugin_t* plugin) -> bool { return false; },
+    .get_resize_hints = [](const clap_plugin_t* plugin, clap_gui_resize_hints_t* hints) -> bool { return false; },
+    .adjust_size = [](const clap_plugin_t* plugin, uint32_t* width, uint32_t* height) -> bool { return false; },
+    .set_size = [](const clap_plugin_t* plugin, uint32_t width, uint32_t height) -> bool { return false; },
+    .set_parent = [](const clap_plugin_t* plugin, const clap_window_t* window) -> bool {
+        MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
+        if (self->ui && self->ui->window) {
+            XReparentWindow(self->ui->display, self->ui->window, (Window)window->x11, 0, 0);
+            return true;
+        }
+        return false;
+    },
+    .set_transient = [](const clap_plugin_t* plugin, const clap_window_t* window) -> bool { return false; },
+    .suggest_title = [](const clap_plugin_t* plugin, const char* title) {},
+    .show = [](const clap_plugin_t* plugin) -> bool {
+        MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
+        if (self->ui && self->ui->window) {
+            XMapWindow(self->ui->display, self->ui->window);
+            return true;
+        }
+        return false;
+    },
+    .hide = [](const clap_plugin_t* plugin) -> bool {
+        MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
+        if (self->ui && self->ui->window) {
+            XUnmapWindow(self->ui->display, self->ui->window);
+            return true;
+        }
+        return false;
+    }
+};
+
 // ---------- (CRÍTICO para ser reconhecido como instrumento) não mexa aqui não! ----------
 static uint32_t note_ports_count(const clap_plugin_t* plugin, bool is_input) {
 	return is_input ? 1u : 0u; // 1 entrada MIDI
@@ -640,6 +776,7 @@ static void my_reset(const clap_plugin_t* plugin) {
 static const void* my_get_extension(const clap_plugin_t* plugin, const char* id) {
 	if (!strcmp(id, CLAP_EXT_AUDIO_PORTS)) return &audio_ports_ext;
 	if (!strcmp(id, CLAP_EXT_NOTE_PORTS)) return &note_ports_ext;
+	if (!strcmp(id, CLAP_EXT_GUI)) return &gui_extension;
 	return nullptr;
 }
 
@@ -679,9 +816,6 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 				uint8_t status = midi->data[0] & 0xF0;
 				uint8_t note   = midi->data[1];
 				uint8_t vel	= midi->data[2];
-
-				// só pra conferir se está tudo ok...
-				//fprintf(stderr, "[Real Sigma Drums] MIDI: status=0x%02X note=%d vel=%d\n", status, note, vel);
 
 				if (status == 0x90 && vel > 0) {  // Note ON
 				    auto it = self->rr_groups.find(note);
@@ -756,7 +890,7 @@ static const clap_plugin_descriptor_t* factory_get_plugin_descriptor(const clap_
 		"https://github.com/realsigmamusic/realsigmadrums",
 		"",
 		"",
-		"1.1.0",
+		"1.1.2",
 		"Acoustic drum sampler",
 		features
 	};
