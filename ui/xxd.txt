@@ -1,1 +1,0 @@
-xxd -i ui/wallpaper.png > wallpaper.h

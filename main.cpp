@@ -531,52 +531,58 @@ struct MyDrumKit {
 
 // ---------- UI Implementation ----------
 static bool ui_create(PluginUI* ui, int width, int height) {
+    // Apenas abre o display - NÃO cria janela ainda
     ui->display = XOpenDisplay(nullptr);
-    if (!ui->display) return false;
+    if (!ui->display) {
+        fprintf(stderr, "[UI] Erro ao abrir display X11\n");
+        return false;
+    }
+    
+    fprintf(stderr, "[UI] Display X11 aberto, aguardando set_parent\n");
+    return true;
+}
 
-    int screen = DefaultScreen(ui->display);
-    Window root = RootWindow(ui->display, screen);
-
-    ui->window = XCreateSimpleWindow(ui->display, root, 200, 200, width, height, 1,
-                                     BlackPixel(ui->display, screen), BlackPixel(ui->display, screen));
-    XStoreName(ui->display, ui->window, "Real Sigma Drums");
-    XMapWindow(ui->display, ui->window);
-
-    ui->surface = cairo_xlib_surface_create(ui->display, ui->window,
-                                            DefaultVisual(ui->display, screen),
-                                            width, height);
-    ui->cr = cairo_create(ui->surface);
-
+static void ui_render(PluginUI* ui) {
+    if (!ui || !ui->cr) return;
+    
     // Fundo preto
     cairo_set_source_rgb(ui->cr, 0, 0, 0);
     cairo_paint(ui->cr);
 
     // Desenhar imagem PNG embutida
+    struct PngReader {
+        size_t offset;
+    } reader = {0};
+    
     cairo_surface_t* img = cairo_image_surface_create_from_png_stream(
         [](void* closure, unsigned char* data, unsigned int length) -> cairo_status_t {
-            static size_t offset = 0;
+            PngReader* r = (PngReader*)closure;
             unsigned char* png = (unsigned char*)wallpaper_png;
             size_t png_len = wallpaper_png_len;
 
-            if (offset + length > png_len) length = png_len - offset;
-            memcpy(data, png + offset, length);
-            offset += length;
-            if (offset >= png_len) offset = 0;
+            if (r->offset + length > png_len) {
+                length = png_len - r->offset;
+            }
+            if (length == 0) return CAIRO_STATUS_READ_ERROR;
+            
+            memcpy(data, png + r->offset, length);
+            r->offset += length;
             return CAIRO_STATUS_SUCCESS;
         },
-        nullptr
+        &reader
     );
 
     if (cairo_surface_status(img) == CAIRO_STATUS_SUCCESS) {
         cairo_set_source_surface(ui->cr, img, 0, 0);
         cairo_paint(ui->cr);
         cairo_surface_destroy(img);
+    } else {
+        fprintf(stderr, "[UI] Erro ao carregar PNG: %s\n", 
+                cairo_status_to_string(cairo_surface_status(img)));
     }
 
     cairo_surface_flush(ui->surface);
     XFlush(ui->display);
-
-    return true;
 }
 
 static void ui_destroy(PluginUI* ui) {
@@ -618,11 +624,67 @@ static const clap_plugin_gui_t gui_extension = {
     .set_size = [](const clap_plugin_t* plugin, uint32_t width, uint32_t height) -> bool { return false; },
     .set_parent = [](const clap_plugin_t* plugin, const clap_window_t* window) -> bool {
         MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
-        if (self->ui && self->ui->window) {
-            XReparentWindow(self->ui->display, self->ui->window, (Window)window->x11, 0, 0);
-            return true;
+        if (!self->ui || !self->ui->display || !window) {
+            fprintf(stderr, "[UI] set_parent: parâmetros inválidos\n");
+            return false;
         }
-        return false;
+        
+        if (strcmp(window->api, CLAP_WINDOW_API_X11) != 0) {
+            fprintf(stderr, "[UI] set_parent: API não é X11\n");
+            return false;
+        }
+        
+        PluginUI* ui = self->ui;
+        Window parent = (Window)window->x11;
+        
+        fprintf(stderr, "[UI] set_parent: criando janela dentro do parent %lu\n", parent);
+        
+        // Cria janela DENTRO do parent fornecido pelo DAW
+        int screen = DefaultScreen(ui->display);
+        ui->window = XCreateSimpleWindow(
+            ui->display,
+            parent,  // IMPORTANTE: usa o parent do DAW
+            0, 0,    // posição (0,0) dentro do parent
+            800, 200, // tamanho
+            0,       // sem borda
+            BlackPixel(ui->display, screen),
+            BlackPixel(ui->display, screen)
+        );
+        
+        if (!ui->window) {
+            fprintf(stderr, "[UI] Erro ao criar janela X11\n");
+            return false;
+        }
+        
+        // Mapeia (mostra) a janela
+        XMapWindow(ui->display, ui->window);
+        XFlush(ui->display);
+        
+        // Cria surface Cairo para desenhar
+        ui->surface = cairo_xlib_surface_create(
+            ui->display, 
+            ui->window,
+            DefaultVisual(ui->display, screen),
+            800, 200
+        );
+        
+        if (!ui->surface) {
+            fprintf(stderr, "[UI] Erro ao criar Cairo surface\n");
+            return false;
+        }
+        
+        ui->cr = cairo_create(ui->surface);
+        
+        if (!ui->cr) {
+            fprintf(stderr, "[UI] Erro ao criar Cairo context\n");
+            return false;
+        }
+        
+        // Renderiza o wallpaper
+        ui_render(ui);
+        
+        fprintf(stderr, "[UI] Janela criada e renderizada com sucesso\n");
+        return true;
     },
     .set_transient = [](const clap_plugin_t* plugin, const clap_window_t* window) -> bool { return false; },
     .suggest_title = [](const clap_plugin_t* plugin, const char* title) {},
