@@ -1,5 +1,5 @@
 CXXFLAGS += -fPIC -O2 -I./include -I/usr/include/clap -std=c++17
-LDFLAGS += -shared -lsndfile
+LDFLAGS += -shared -lsndfile -lcairo -lX11
 PLUGIN = realsigmadrums
 PAK = sounds.pak
 
