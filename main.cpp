@@ -22,43 +22,43 @@
 
 // Leitor de .pak
 struct PakReader {
-    std::ifstream file;
-    std::map<std::string, std::pair<uint64_t, uint64_t>> index; // path -> (offset, size)
-    
-    bool open(const std::string& pakPath) {
-        file.open(pakPath, std::ios::binary);
-        if (!file) return false;
-        
-        uint32_t count;
-        file.read((char*)&count, sizeof(count));
-        
-        for (uint32_t i = 0; i < count; ++i) {
-            uint32_t len;
-            file.read((char*)&len, sizeof(len));
-            
-            std::string path(len, '\0');
-            file.read(&path[0], len);
-            
-            uint64_t offset, size;
-            file.read((char*)&offset, sizeof(offset));
-            file.read((char*)&size, sizeof(size));
-            
-            index[path] = {offset, size};
-        }
-        
-        fprintf(stderr, "[Real Sigma Drums] PakReader Carregado: %u arquivos\n", count);
-        return true;
-    }
-    
-    std::vector<char> read(const std::string& path) {
-        auto it = index.find(path);
-        if (it == index.end()) return {};
-        
-        file.seekg(it->second.first);
-        std::vector<char> data(it->second.second);
-        file.read(data.data(), data.size());
-        return data;
-    }
+	std::ifstream file;
+	std::map<std::string, std::pair<uint64_t, uint64_t>> index; // path -> (offset, size)
+	
+	bool open(const std::string& pakPath) {
+		file.open(pakPath, std::ios::binary);
+		if (!file) return false;
+		
+		uint32_t count;
+		file.read((char*)&count, sizeof(count));
+		
+		for (uint32_t i = 0; i < count; ++i) {
+			uint32_t len;
+			file.read((char*)&len, sizeof(len));
+			
+			std::string path(len, '\0');
+			file.read(&path[0], len);
+			
+			uint64_t offset, size;
+			file.read((char*)&offset, sizeof(offset));
+			file.read((char*)&size, sizeof(size));
+			
+			index[path] = {offset, size};
+		}
+		
+		fprintf(stderr, "[Real Sigma Drums] PakReader Carregado: %u arquivos\n", count);
+		return true;
+	}
+	
+	std::vector<char> read(const std::string& path) {
+		auto it = index.find(path);
+		if (it == index.end()) return {};
+		
+		file.seekg(it->second.first);
+		std::vector<char> data(it->second.second);
+		file.read(data.data(), data.size());
+		return data;
+	}
 };
 
 struct Sample {
@@ -378,105 +378,105 @@ struct MyDrumKit {
 	}
 
 	static Sample load_wav(const char* data, size_t size, bool force_stereo = false) {
-	    SF_INFO info{};
-	    SF_VIRTUAL_IO vio;
+		SF_INFO info{};
+		SF_VIRTUAL_IO vio;
 		
-	    struct MemFile {
-	        const char* data;
-	        size_t size;
-	        size_t pos;
-	    } memfile = {data, size, 0};
+		struct MemFile {
+			const char* data;
+			size_t size;
+			size_t pos;
+		} memfile = {data, size, 0};
 	
-	    vio.get_filelen = [](void* user_data) -> sf_count_t {
-	        return ((MemFile*)user_data)->size;
-	    };
-	    vio.seek = [](sf_count_t offset, int whence, void* user_data) -> sf_count_t {
-	        MemFile* mf = (MemFile*)user_data;
-	        switch (whence) {
-	            case SEEK_SET: mf->pos = offset; break;
-	            case SEEK_CUR: mf->pos += offset; break;
-	            case SEEK_END: mf->pos = mf->size + offset; break;
-	        }
-	        if (mf->pos > mf->size) mf->pos = mf->size;
-	        return mf->pos;
-	    };
-	    vio.read = [](void* ptr, sf_count_t count, void* user_data) -> sf_count_t {
-	        MemFile* mf = (MemFile*)user_data;
-	        sf_count_t to_read = std::min((sf_count_t)(mf->size - mf->pos), count);
-	        memcpy(ptr, mf->data + mf->pos, to_read);
-	        mf->pos += to_read;
-	        return to_read;
-	    };
-	    vio.write = [](const void*, sf_count_t, void*) -> sf_count_t { return 0; };
-	    vio.tell = [](void* user_data) -> sf_count_t {
-	        return ((MemFile*)user_data)->pos;
-	    };
+		vio.get_filelen = [](void* user_data) -> sf_count_t {
+			return ((MemFile*)user_data)->size;
+		};
+		vio.seek = [](sf_count_t offset, int whence, void* user_data) -> sf_count_t {
+			MemFile* mf = (MemFile*)user_data;
+			switch (whence) {
+				case SEEK_SET: mf->pos = offset; break;
+				case SEEK_CUR: mf->pos += offset; break;
+				case SEEK_END: mf->pos = mf->size + offset; break;
+			}
+			if (mf->pos > mf->size) mf->pos = mf->size;
+			return mf->pos;
+		};
+		vio.read = [](void* ptr, sf_count_t count, void* user_data) -> sf_count_t {
+			MemFile* mf = (MemFile*)user_data;
+			sf_count_t to_read = std::min((sf_count_t)(mf->size - mf->pos), count);
+			memcpy(ptr, mf->data + mf->pos, to_read);
+			mf->pos += to_read;
+			return to_read;
+		};
+		vio.write = [](const void*, sf_count_t, void*) -> sf_count_t { return 0; };
+		vio.tell = [](void* user_data) -> sf_count_t {
+			return ((MemFile*)user_data)->pos;
+		};
 	
-	    SNDFILE* file = sf_open_virtual(&vio, SFM_READ, &info, &memfile);
-	    Sample s;
-	    if (!file) return s;
+		SNDFILE* file = sf_open_virtual(&vio, SFM_READ, &info, &memfile);
+		Sample s;
+		if (!file) return s;
 	
-	    s.channels = info.channels;
-	    s.sampleRate = info.samplerate;
-	    sf_count_t frames = info.frames;
-	    if (frames <= 0 || info.channels <= 0) {
-	        sf_close(file);
-	        return s;
-	    }
+		s.channels = info.channels;
+		s.sampleRate = info.samplerate;
+		sf_count_t frames = info.frames;
+		if (frames <= 0 || info.channels <= 0) {
+			sf_close(file);
+			return s;
+		}
 	
-	    std::vector<float> tmp(frames * info.channels);
-	    sf_read_float(file, tmp.data(), tmp.size());
-	    sf_close(file);
+		std::vector<float> tmp(frames * info.channels);
+		sf_read_float(file, tmp.data(), tmp.size());
+		sf_close(file);
 	
-	    if (force_stereo && info.channels >= 2) {
-	        s.is_stereo = true;
-	        s.dataL.resize(frames);
-	        s.dataR.resize(frames);
-	        for (sf_count_t i = 0; i < frames; ++i) {
-	            s.dataL[i] = tmp[i * info.channels + 0];
-	            s.dataR[i] = tmp[i * info.channels + 1];
-	        }
-	        s.channels = 2;
-	    } else if (info.channels == 1) {
-	        s.is_stereo = false;
-	        s.dataL = std::move(tmp);
-	        s.channels = 1;
-	    } else {
-	        s.is_stereo = false;
-	        s.dataL.resize(frames);
-	        for (sf_count_t i = 0; i < frames; ++i) {
-	            float sum = 0.0f;
-	            for (int c = 0; c < info.channels; ++c) sum += tmp[i * info.channels + c];
-	            s.dataL[i] = sum / (float)info.channels;
-	        }
-	        s.channels = 1;
-	    }
-	    return s;
+		if (force_stereo && info.channels >= 2) {
+			s.is_stereo = true;
+			s.dataL.resize(frames);
+			s.dataR.resize(frames);
+			for (sf_count_t i = 0; i < frames; ++i) {
+				s.dataL[i] = tmp[i * info.channels + 0];
+				s.dataR[i] = tmp[i * info.channels + 1];
+			}
+			s.channels = 2;
+		} else if (info.channels == 1) {
+			s.is_stereo = false;
+			s.dataL = std::move(tmp);
+			s.channels = 1;
+		} else {
+			s.is_stereo = false;
+			s.dataL.resize(frames);
+			for (sf_count_t i = 0; i < frames; ++i) {
+				float sum = 0.0f;
+				for (int c = 0; c < info.channels; ++c) sum += tmp[i * info.channels + c];
+				s.dataL[i] = sum / (float)info.channels;
+			}
+			s.channels = 1;
+		}
+		return s;
 	}
 
 	void add_to_rr_group_path(int note, const char* relpath, int output, bool stereo = false) {
-	    // Lê do .pak
-	    auto data = pak.read(relpath);
-	    if (data.empty()) {
-	        fprintf(stderr, "[Real Sigma Drums] Sample não encontrado no pak: %s\n", relpath);
-	        return;
-	    }
+		// Lê do .pak
+		auto data = pak.read(relpath);
+		if (data.empty()) {
+			fprintf(stderr, "[Real Sigma Drums] Sample não encontrado no pak: %s\n", relpath);
+			return;
+		}
 	
-	    Sample s = load_wav(data.data(), data.size(), stereo);
-	    if (s.dataL.empty()) return;
+		Sample s = load_wav(data.data(), data.size(), stereo);
+		if (s.dataL.empty()) return;
 
-	    auto& noteGroups = rr_groups[note];
-	    auto it = std::find_if(noteGroups.begin(), noteGroups.end(),
-	                           [&](const RRGroup& g){ return g.output == output; });
+		auto& noteGroups = rr_groups[note];
+		auto it = std::find_if(noteGroups.begin(), noteGroups.end(),
+							   [&](const RRGroup& g){ return g.output == output; });
 
-	    if (it == noteGroups.end()) {
-	        RRGroup g;
-	        g.output = output;
-	        g.samples.push_back(std::move(s));
-	        noteGroups.push_back(std::move(g));
-	    } else {
-	        it->samples.push_back(std::move(s));
-	    }
+		if (it == noteGroups.end()) {
+			RRGroup g;
+			g.output = output;
+			g.samples.push_back(std::move(s));
+			noteGroups.push_back(std::move(g));
+		} else {
+			it->samples.push_back(std::move(s));
+		}
 	}
 
 	void run_render(uint32_t n_samples) {
@@ -600,20 +600,20 @@ static bool my_activate(const clap_plugin_t* plugin, double sr, uint32_t min_fra
 	fprintf(stderr, "[Real Sigma Drums] CLAP activate SR=%.1f, min=%u, max=%u\n", sr, min_frames, max_frames);
 
 	if (self->rr_groups.empty()) {
-	    const char* home = getenv("HOME");
-	    if (!home) home = ".";
-	    std::string pak_path = std::string(home) + "/.clap/realsigmadrums.clap/sounds.pak";
+		const char* home = getenv("HOME");
+		if (!home) home = ".";
+		std::string pak_path = std::string(home) + "/.clap/realsigmadrums.clap/sounds.pak";
 		
-	    fprintf(stderr, "[Real Sigma Drums] Abrindo pak: %s\n", pak_path.c_str());
+		fprintf(stderr, "[Real Sigma Drums] Abrindo pak: %s\n", pak_path.c_str());
 		
-	    if (!self->pak.open(pak_path)) {
-	        fprintf(stderr, "[Real Sigma Drums] ERRO: não conseguiu abrir %s\n", pak_path.c_str());
-	        return false;
-	    }
+		if (!self->pak.open(pak_path)) {
+			fprintf(stderr, "[Real Sigma Drums] ERRO: não conseguiu abrir %s\n", pak_path.c_str());
+			return false;
+		}
 	
-	    if (!self->loadSamplesFromFolder("")) {
-	        fprintf(stderr, "[Real Sigma Drums] AVISO: Erro ao carregar samples\n");
-	    }
+		if (!self->loadSamplesFromFolder("")) {
+			fprintf(stderr, "[Real Sigma Drums] AVISO: Erro ao carregar samples\n");
+		}
 	}
 	return true;
 }
@@ -683,55 +683,55 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 				uint8_t vel	= midi->data[2];
 
 				if (status == 0x90 && vel > 0) {  // Note ON
-				    auto it = self->rr_groups.find(note);
-				    if (it != self->rr_groups.end()) {
-				        // 1) coleta chokeGroups que devem ser aplicados para esta nota
-				        std::vector<int> chokes;
-				        for (RRGroup& group : it->second) {
-				            if (group.chokeGroup > 0)
-				                chokes.push_back(group.chokeGroup);
-				        }
+					auto it = self->rr_groups.find(note);
+					if (it != self->rr_groups.end()) {
+						// 1) coleta chokeGroups que devem ser aplicados para esta nota
+						std::vector<int> chokes;
+						for (RRGroup& group : it->second) {
+							if (group.chokeGroup > 0)
+								chokes.push_back(group.chokeGroup);
+						}
 					
-				        // 2) aplica choke: remove todas as vozes ativas que pertencem a esses chokeGroups
-				        if (!chokes.empty()) {
-				            self->voices.erase(
-				                std::remove_if(self->voices.begin(), self->voices.end(),
-				                    [&](const Voice& v){
-				                        return std::find(chokes.begin(), chokes.end(), v.chokeGroup) != chokes.end();
-				                    }),
-				                self->voices.end());
-				        }
+						// 2) aplica choke: remove todas as vozes ativas que pertencem a esses chokeGroups
+						if (!chokes.empty()) {
+							self->voices.erase(
+								std::remove_if(self->voices.begin(), self->voices.end(),
+									[&](const Voice& v){
+										return std::find(chokes.begin(), chokes.end(), v.chokeGroup) != chokes.end();
+									}),
+								self->voices.end());
+						}
 					
-				        // 3) agora dispare todas as RRGroups (cada mic) para esta nota
-				        for (RRGroup& group : it->second) {
-				            const Sample* sample = group.getNextSample();
-				            if (!sample || sample->dataL.empty()) continue;
+						// 3) agora dispare todas as RRGroups (cada mic) para esta nota
+						for (RRGroup& group : it->second) {
+							const Sample* sample = group.getNextSample();
+							if (!sample || sample->dataL.empty()) continue;
 						
-				            Voice v;
-				            v.sample = sample;
-				            v.pos = 0;
-				            v.length = (uint32_t)sample->dataL.size();
-				            v.output = group.output;
-				            v.chokeGroup = group.chokeGroup;
-				            float v_norm = (float)vel / 127.0f;
-				            v.velocity = v_norm * v_norm;
+							Voice v;
+							v.sample = sample;
+							v.pos = 0;
+							v.length = (uint32_t)sample->dataL.size();
+							v.output = group.output;
+							v.chokeGroup = group.chokeGroup;
+							float v_norm = (float)vel / 127.0f;
+							v.velocity = v_norm * v_norm;
 						
-				            self->voices.push_back(v);
+							self->voices.push_back(v);
 						
-				            // limite de vozes para não bugar tudo na hora do play
-				            if (self->voices.size() > MAX_VOICES)
-				                self->voices.erase(self->voices.begin());
-				        }
-				    }
+							// limite de vozes para não bugar tudo na hora do play
+							if (self->voices.size() > MAX_VOICES)
+								self->voices.erase(self->voices.begin());
+						}
+					}
 				}
 			}
 		}
 	}
 
 	// Renderizar áudio
-    self->run_render(nframes);
+	self->run_render(nframes);
 
-    return CLAP_PROCESS_CONTINUE;
+	return CLAP_PROCESS_CONTINUE;
 }
 
 // ---------- Factory ----------
