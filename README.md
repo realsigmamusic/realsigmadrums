@@ -13,8 +13,9 @@ Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW c
 - [x] Choke groups (hi-hat)
 - [x] Curva de velocity quadrática
 - [x] Samples estéreo nos overheads/room
-- [ ] Interface gráfica
+- [ ] Velocity Layers
 - [ ] Windows & macOS builds
+- [ ] Interface gráfica
 
 ## [DOWNLOAD](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
 
@@ -35,6 +36,12 @@ chmod +x install.sh
 - Execute *(dois cliques ou* `./install.sh` *no terminal)* o arquivo `install.sh`.
 O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
 
+## Aviso Importante
+
+Se você carregar o plugin em modo estéreo simples, apenas o som do bumbo (kick) será reproduzido.
+Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltiplas saídas e ative as demais faixas de áudio do plugin.
+
+## Output Channels
 
 | Note       | Instrument                 | Outputs                       |
 |------------|----------------------------|-------------------------------|
@@ -48,12 +55,6 @@ O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
 | 51, 53, 59 | Ride (bow/bell/edge)       | OH L/R, Room L/R              |
 | 52, 55     | China, Splash              | OH L/R, Room L/R              |
 
-## Aviso Importante
-
-Se você carregar o plugin em modo estéreo simples, apenas o som do bumbo (kick) será reproduzido.
-Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltiplas saídas e ative as demais faixas de áudio do plugin.
-
-## Output Channels
 1. Kick In
 2. Kick Out
 3. Snare Top
