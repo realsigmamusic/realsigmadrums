@@ -1,10 +1,11 @@
-# Real Sigma Drums
+# 🥁 **Real Sigma Drums**
 
-Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW com suporte a CLAP.
+🎶 **Plugin de bateria acústica CLAP**, pronto para uso em qualquer DAW compatível com CLAP.
+Sons reais, multi-mic, round robin e dinâmica natural — tudo empacotado e pronto para tocar.
 
-[![CLAP](https://img.shields.io/badge/CLAP-Plugin-blue)](https://github.com/free-audio/clap)
+[![CLAP](https://img.shields.io/badge/CLAP-Plugin-blue?style=for-the-badge\&logo=data\:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAflBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+u+j2SAAAAKXRSTlMAAQQGCxwqMUFJS2h0foKSpbnF1uDp7fL0/P3+/v7+/v7+/v7+/v6/fCjjAAAAfklEQVQY02MQBQYGBhZWNnZ2BgYGJmYOTm5iZGBgaGZqenp5WZgYGJhZWVlFZXV1dXW1lZWVtXV1dXV1dXW1tbW1tXW1tbW1tbW1tbW1tbW1tbW1tXV1dXV1dXV1dXW1tbW1tXV1dXV1dXV1dXW1tbW1tXV1dXV1dXV1dXV1dXW1tbW1tbW1tXV1dXV1dXV1fAAMumB55kHqI+AAAAAElFTkSuQmCC)](https://github.com/free-audio/clap) [![Release](https://img.shields.io/github/v/release/realsigmamusic/realsigmadrums?style=for-the-badge\&color=success)](https://github.com/realsigmamusic/realsigmadrums/releases/latest) [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=for-the-badge)](#)
 
-<img width="1366" height="723" alt="image" src="https://github.com/user-attachments/assets/31393da0-3377-4e9e-9ce0-e77d225986bc" />
+<img width="100%" alt="Real Sigma Drums Screenshot" src="https://github.com/user-attachments/assets/31393da0-3377-4e9e-9ce0-e77d225986bc" />
 
 - [x] Plugin CLAP
 - [x] 15 canais multi-mic
@@ -13,35 +14,32 @@ Instrumento virtual CLAP de bateria acústica pronta para usar em qualquer DAW c
 - [x] Choke groups (hi-hat)
 - [x] Curva de velocity quadrática
 - [x] Samples estéreo nos overheads/room
-- [ ] Velocity Layers
-- [ ] Windows & macOS builds
 - [ ] Interface gráfica
+- [ ] Windows & macOS builds
 
 ## [DOWNLOAD](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
 
-## Conteúdo do pacote
+## 🧰 **Pacote**
 ```
-RealSigmaDrums.zip/
-├── install.sh
-└── realsigmadrums.clap/
-    ├── plugin.clap
-    └── sounds.pak
+realsigmadrums.clap/
+├── plugin.clap
+└── sounds.pak
 ```
 
-## Instalação
-- Dê permissão de execução ao instalador *(apenas na primeira vez)*:
+## ⚙️ **Instalação (Linux)**
+1. Dê permissão de execução ao instalador *(apenas na primeira vez)*:
 ```bash
 chmod +x install.sh
 ```
-- Execute *(dois cliques ou* `./install.sh` *no terminal)* o arquivo `install.sh`.
-O plugin será instalado em: `~/.clap/realsigmadrums.clap/`
+2. Execute o instalador:
+```bash
+./install.sh
+```
+O plugin será instalado em:
+```
+~/.clap/realsigmadrums.clap/
+```
 
-## Aviso Importante
-
-Se você carregar o plugin em modo estéreo simples, apenas o som do bumbo (kick) será reproduzido.
-Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltiplas saídas e ative as demais faixas de áudio do plugin.
-
-## Output Channels
 
 | Note       | Instrument                 | Outputs                       |
 |------------|----------------------------|-------------------------------|
@@ -55,6 +53,12 @@ Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltipla
 | 51, 53, 59 | Ride (bow/bell/edge)       | OH L/R, Room L/R              |
 | 52, 55     | China, Splash              | OH L/R, Room L/R              |
 
+## Aviso Importante
+
+Se você carregar o plugin em modo estéreo simples, apenas o som do bumbo (kick) será reproduzido.
+Para ouvir todos os instrumentos, abra o plugin em um host que suporte múltiplas saídas e ative as demais faixas de áudio do plugin.
+
+## Output Channels
 1. Kick In
 2. Kick Out
 3. Snare Top
