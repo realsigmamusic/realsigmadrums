@@ -70,16 +70,37 @@ struct Sample {
 	Sample() : channels(0), sampleRate(0), is_stereo(false) {}
 };
 
-struct RRGroup {
+struct VelocityLayer {
+	uint8_t min_vel;
+	uint8_t max_vel;
 	std::vector<Sample> samples;
 	uint32_t current_rr = 0;
-	int output = 0;
-	int chokeGroup = 0;
+	
 	const Sample* getNextSample() {
 		if (samples.empty()) return nullptr;
 		const Sample* s = &samples[current_rr];
 		current_rr = (current_rr + 1) % samples.size();
 		return s;
+	}
+};
+
+struct RRGroup {
+	std::vector<VelocityLayer> velocity_layers;
+	int output = 0;
+	int chokeGroup = 0;
+	
+	const Sample* getSampleForVelocity(uint8_t velocity) {
+		// Procura o layer apropriado para esta velocidade
+		for (auto& layer : velocity_layers) {
+			if (velocity >= layer.min_vel && velocity <= layer.max_vel) {
+				return layer.getNextSample();
+			}
+		}
+		// Fallback: retorna do primeiro layer se não encontrar
+		if (!velocity_layers.empty()) {
+			return velocity_layers[0].getNextSample();
+		}
+		return nullptr;
 	}
 };
 
@@ -104,279 +125,7 @@ struct MyDrumKit {
 		for (int i = 0; i < NUM_OUTPUTS; ++i) outputs[i] = nullptr;
 	}
 
-	bool loadSamplesFromFolder(const std::string& base) {
-		try {
-			// Kick (35 & 36)
-			for (int i = 1; i <= 8; ++i) {
-				std::string path = "kick_in_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(35, path.c_str(), 0);
-				add_to_rr_group_path(36, path.c_str(), 0);
-			}
-			for (int i = 1; i <= 8; ++i) {
-				std::string path = "kick_out_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(35, path.c_str(), 1);
-				add_to_rr_group_path(36, path.c_str(), 1);
-			}
-			for (int i = 1; i <= 8; ++i) {
-				std::string path = "kick_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(35, path.c_str(), 11, true);
-				add_to_rr_group_path(36, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 8; ++i) {
-				std::string path = "kick_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(35, path.c_str(), 13, true);
-				add_to_rr_group_path(36, path.c_str(), 13, true);
-			}
-
-			// Sidestick (37)
-			for (int i = 1; i <= 4; ++i) {
-				std::string path = "sidestick_top_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(37, path.c_str(), 2);
-			}
-			for (int i = 1; i <= 4; ++i) {
-				std::string path = "sidestick_bottom_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(37, path.c_str(), 3);
-			}
-			for (int i = 1; i <= 4; ++i) {
-				std::string path = "sidestick_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(37, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 4; ++i) {
-				std::string path = "sidestick_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(37, path.c_str(), 13, true);
-			}
-
-			// Snare (38 and 40)
-			for (int i = 1; i <= 9; ++i) {
-				std::string path = "snare_top_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(38, path.c_str(), 2);
-				add_to_rr_group_path(40, path.c_str(), 2);
-			}
-			for (int i = 1; i <= 9; ++i) {
-				std::string path = "snare_bottom_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(38, path.c_str(), 3);
-				add_to_rr_group_path(40, path.c_str(), 3);
-			}
-			for (int i = 1; i <= 9; ++i) {
-				std::string path = "snare_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(38, path.c_str(), 11, true);
-				add_to_rr_group_path(40, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 9; ++i) {
-				std::string path = "snare_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(38, path.c_str(), 13, true);
-				add_to_rr_group_path(40, path.c_str(), 13, true);
-			}
-
-			// HiHat Closed
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_closed_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(42, path.c_str(), 4);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_closed_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(42, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_closed_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(42, path.c_str(), 13, true);
-			}
-
-			// HiHat Pedal
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_pedal_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(44, path.c_str(), 4);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_pedal_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(44, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_pedal_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(44, path.c_str(), 13, true);
-			}
-
-			// HiHat Open
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_open_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(46, path.c_str(), 4);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_open_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(46, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "hihat_open_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(46, path.c_str(), 13, true);
-			}
-
-			// Choke groups (HiHat)
-			for (auto& g : rr_groups[46]) g.chokeGroup = 1;
-			for (auto& g : rr_groups[42]) g.chokeGroup = 1;
-			for (auto& g : rr_groups[44]) g.chokeGroup = 1;
-
-			// Racktom 1
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom1_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 5);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom1_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom1_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(50, path.c_str(), 13, true);
-			}
-
-			// Racktom 2
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom2_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(48, path.c_str(), 6);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom2_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(48, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom2_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(48, path.c_str(), 13, true);
-			}
-
-			// Racktom 3
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom3_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(47, path.c_str(), 7);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom3_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(47, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "racktom3_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(47, path.c_str(), 13, true);
-			}
-
-			// Floorom 1
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom1_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(45, path.c_str(), 8);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom1_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(45, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom1_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(45, path.c_str(), 13, true);
-			}
-
-			// Floortom 2
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom2_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(43, path.c_str(), 9);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom2_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(43, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom2_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(43, path.c_str(), 13, true);
-			}
-
-			// Floortom 3
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom3_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(41, path.c_str(), 10);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom3_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(41, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "floortom3_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(41, path.c_str(), 13, true);
-			}
-
-			// Crash 1
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "crash1_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(49, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "crash1_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(49, path.c_str(), 13, true);
-			}
-
-			// Crash 2
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "crash2_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(57, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "crash2_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(57, path.c_str(), 13, true);
-			}
-
-			// Ride
-			for (int i = 1; i <= 6; ++i) {
-				std::string path = "ride_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(51, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 6; ++i) {
-				std::string path = "ride_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(51, path.c_str(), 13, true);
-			}
-
-			// Ride Bell
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "ride_bell_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(53, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "ride_bell_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(53, path.c_str(), 13, true);
-			}
-
-			// Ride Edge
-			for (int i = 1; i <= 5; ++i) {
-				std::string path = "ride_edge_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(59, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 5; ++i) {
-				std::string path = "ride_edge_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(59, path.c_str(), 13, true);
-			}
-
-			// China
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "china_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(52, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "china_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(52, path.c_str(), 13, true);
-			}
-
-			// Splash
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "splash_overhead_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(55, path.c_str(), 11, true);
-			}
-			for (int i = 1; i <= 7; ++i) {
-				std::string path = "splash_room_r" + std::to_string(i) + ".wav";
-				add_to_rr_group_path(55, path.c_str(), 13, true);
-			}
-
-			fprintf(stderr, "[Real Sigma Drums] %zu notas carregadas (CLAP)\n", rr_groups.size());
-		} catch (...) {
-			fprintf(stderr, "[Real Sigma Drums] Erro inesperado ao carregar samples\n");
-			return false;
-		}
-		return true;
-	}
-
+	// Função load_wav agora é membro estático da classe
 	static Sample load_wav(const char* data, size_t size, bool force_stereo = false) {
 		SF_INFO info{};
 		SF_VIRTUAL_IO vio;
@@ -454,29 +203,189 @@ struct MyDrumKit {
 		return s;
 	}
 
-	void add_to_rr_group_path(int note, const char* relpath, int output, bool stereo = false) {
-		// Lê do .pak
+	// Agora esta função é um método da classe MyDrumKit
+	void add_to_rr_group_with_velocity(int note, const char* relpath, int output, uint8_t min_vel, uint8_t max_vel, bool stereo = false) {
 		auto data = pak.read(relpath);
 		if (data.empty()) {
-			fprintf(stderr, "[Real Sigma Drums] Sample não encontrado no pak: %s\n", relpath);
+			fprintf(stderr, "[Real Sigma Drums] Sample não encontrado: %s\n", relpath);
 			return;
 		}
-	
+
 		Sample s = load_wav(data.data(), data.size(), stereo);
 		if (s.dataL.empty()) return;
 
 		auto& noteGroups = rr_groups[note];
-		auto it = std::find_if(noteGroups.begin(), noteGroups.end(),
-							   [&](const RRGroup& g){ return g.output == output; });
-
-		if (it == noteGroups.end()) {
+		
+		// Procura por um grupo com o mesmo output
+		auto group_it = std::find_if(noteGroups.begin(), noteGroups.end(),[&](const RRGroup& g){ return g.output == output; });
+		
+		if (group_it == noteGroups.end()) {
+			// Cria novo grupo
 			RRGroup g;
 			g.output = output;
-			g.samples.push_back(std::move(s));
+			
+			VelocityLayer layer;
+			layer.min_vel = min_vel;
+			layer.max_vel = max_vel;
+			layer.samples.push_back(std::move(s));
+			
+			g.velocity_layers.push_back(std::move(layer));
 			noteGroups.push_back(std::move(g));
 		} else {
-			it->samples.push_back(std::move(s));
+			// Procura layer existente ou cria novo
+			auto layer_it = std::find_if(group_it->velocity_layers.begin(),group_it->velocity_layers.end(),[&](const VelocityLayer& l) {
+				return l.min_vel == min_vel && l.max_vel == max_vel;
+			});
+			
+			if (layer_it == group_it->velocity_layers.end()) {
+				// Cria novo layer
+				VelocityLayer layer;
+				layer.min_vel = min_vel;
+				layer.max_vel = max_vel;
+				layer.samples.push_back(std::move(s));
+				group_it->velocity_layers.push_back(std::move(layer));
+			} else {
+				// Adiciona ao layer existente (round robin)
+				layer_it->samples.push_back(std::move(s));
+			}
 		}
+	}
+
+	// Agora esta função também é um método da classe MyDrumKit
+	void load_instrument_samples(int midi_note, const std::string& base_name, int output, int num_velocity_layers, int num_rr,bool stereo = false) {
+		for (int vel_layer = 1; vel_layer <= num_velocity_layers; ++vel_layer) {
+			uint8_t min_vel, max_vel;
+			
+			// Calcula ranges automaticamente baseado no número de layers
+			if (num_velocity_layers == 1) {
+				min_vel = 1; max_vel = 127;
+			} else if (num_velocity_layers == 2) {
+				if (vel_layer == 1)      { min_vel = 1;  max_vel = 63; }
+				else                     { min_vel = 64; max_vel = 127; }
+			} else if (num_velocity_layers == 3) {
+				if (vel_layer == 1)      { min_vel = 1;  max_vel = 42; }
+				else if (vel_layer == 2) { min_vel = 43; max_vel = 84; }
+				else                     { min_vel = 85; max_vel = 127; }
+			} else if (num_velocity_layers == 4) {
+				if (vel_layer == 1)      { min_vel = 1;  max_vel = 31; }
+				else if (vel_layer == 2) { min_vel = 32; max_vel = 63; }
+				else if (vel_layer == 3) { min_vel = 64; max_vel = 95; }
+				else                     { min_vel = 96; max_vel = 127; }
+			} else {
+				// Fallback genérico para qualquer número de layers
+				int range = 127 / num_velocity_layers;
+				min_vel = (vel_layer - 1) * range + 1;
+				max_vel = (vel_layer == num_velocity_layers) ? 127 : vel_layer * range;
+			}
+			
+			for (int rr = 1; rr <= num_rr; ++rr) {
+				std::string path = base_name + "_r" + std::to_string(rr) + "_v" + std::to_string(vel_layer) + ".wav"; 
+				add_to_rr_group_with_velocity(midi_note, path.c_str(), output, min_vel, max_vel, stereo);
+			}
+		}
+	}
+
+	bool loadSamplesFromFolder(const std::string& base) {
+		try {
+			// Kick (35 & 36)
+			load_instrument_samples(35, "kick_in", 0, 1, 8);
+			load_instrument_samples(36, "kick_in", 0, 1, 8);
+			load_instrument_samples(35, "kick_out", 1, 1, 8);
+			load_instrument_samples(36, "kick_out", 1, 1, 8);
+			load_instrument_samples(35, "kick_overhead", 11, 1, 8, true);
+			load_instrument_samples(36, "kick_overhead", 11, 1, 8, true);
+			load_instrument_samples(35, "kick_room", 13, 3, 1, true);
+			load_instrument_samples(36, "kick_room", 13, 3, 1, true);
+
+			// Sidestick (37)
+			load_instrument_samples(37, "sidestick_top", 2, 1, 4);
+			load_instrument_samples(37, "sidestick_bottom", 3, 1, 4);
+			load_instrument_samples(37, "sidestick_overhead", 11, 1, 4, true);
+			load_instrument_samples(37, "sidestick_room", 13, 1, 4, true);
+
+			// Snare (38 e 40)
+			load_instrument_samples(38, "snare_top", 2, 7, 9);
+			load_instrument_samples(40, "snare_top", 2, 7, 9);
+			load_instrument_samples(38, "snare_bottom", 3, 7, 9);
+			load_instrument_samples(40, "snare_bottom", 3, 7, 9);
+			load_instrument_samples(38, "snare_overhead", 11, 7, 9, true);
+			load_instrument_samples(40, "snare_overhead", 11, 7, 9, true);
+			load_instrument_samples(38, "snare_room", 13, 7, 9, true);
+			load_instrument_samples(40, "snare_room", 13, 7, 9, true);
+
+			// HiHat Closed (42)
+			load_instrument_samples(42, "hihat_closed", 4, 1, 7);
+			load_instrument_samples(42, "hihat_closed_overhead", 11, 1, 7, true);
+			load_instrument_samples(42, "hihat_closed_room", 13, 1, 7, true);
+
+			// HiHat Pedal (44)
+			load_instrument_samples(44, "hihat_pedal", 4, 1, 7);
+			load_instrument_samples(44, "hihat_pedal_overhead", 11, 1, 7, true);
+			load_instrument_samples(44, "hihat_pedal_room", 13, 1, 7, true);
+
+			// HiHat Open (46)
+			load_instrument_samples(46, "hihat_open", 4, 1, 7);
+			load_instrument_samples(46, "hihat_open_overhead", 11, 1, 7, true);
+			load_instrument_samples(46, "hihat_open_room", 13, 1, 7, true);
+
+			// Choke groups (HiHat)
+			for (auto& g : rr_groups[46]) g.chokeGroup = 1;
+			for (auto& g : rr_groups[42]) g.chokeGroup = 1;
+			for (auto& g : rr_groups[44]) g.chokeGroup = 1;
+
+			// Toms
+			load_instrument_samples(50, "racktom1", 5, 1, 7);
+			load_instrument_samples(50, "racktom1_overhead", 11, 1, 7, true);
+			load_instrument_samples(50, "racktom1_room", 13, 1, 7, true);
+
+			load_instrument_samples(48, "racktom2", 6, 1, 7);
+			load_instrument_samples(48, "racktom2_overhead", 11, 1, 7, true);
+			load_instrument_samples(48, "racktom2_room", 13, 1, 7, true);
+
+			load_instrument_samples(47, "racktom3", 7, 1, 7);
+			load_instrument_samples(47, "racktom3_overhead", 11, 1, 7, true);
+			load_instrument_samples(47, "racktom3_room", 13, 1, 7, true);
+
+			load_instrument_samples(45, "floortom1", 8, 1, 7);
+			load_instrument_samples(45, "floortom1_overhead", 11, 1, 7, true);
+			load_instrument_samples(45, "floortom1_room", 13, 1, 7, true);
+
+			load_instrument_samples(43, "floortom2", 9, 1, 7);
+			load_instrument_samples(43, "floortom2_overhead", 11, 1, 7, true);
+			load_instrument_samples(43, "floortom2_room", 13, 1, 7, true);
+
+			load_instrument_samples(41, "floortom3", 10, 1, 7);
+			load_instrument_samples(41, "floortom3_overhead", 11, 1, 7, true);
+			load_instrument_samples(41, "floortom3_room", 13, 1, 7, true);
+
+			// Pratos
+			load_instrument_samples(49, "crash1_overhead", 11, 1, 7, true);
+			load_instrument_samples(49, "crash1_room", 13, 1, 7, true);
+
+			load_instrument_samples(57, "crash2_overhead", 11, 1, 7, true);
+			load_instrument_samples(57, "crash2_room", 13, 1, 7, true);
+
+			load_instrument_samples(51, "ride_overhead", 11, 1, 6, true);
+			load_instrument_samples(51, "ride_room", 13, 1, 6, true);
+
+			load_instrument_samples(53, "ride_bell_overhead", 11, 1, 7, true);
+			load_instrument_samples(53, "ride_bell_room", 13, 1, 7, true);
+
+			load_instrument_samples(59, "ride_edge_overhead", 11, 1, 5, true);
+			load_instrument_samples(59, "ride_edge_room", 13, 1, 5, true);
+
+			load_instrument_samples(52, "china_overhead", 11, 1, 7, true);
+			load_instrument_samples(52, "china_room", 13, 1, 7, true);
+
+			load_instrument_samples(55, "splash_overhead", 11, 1, 7, true);
+			load_instrument_samples(55, "splash_room", 13, 1, 7, true);
+
+			fprintf(stderr, "[Real Sigma Drums] %zu notas carregadas (CLAP)\n", rr_groups.size());
+		} catch (...) {
+			fprintf(stderr, "[Real Sigma Drums] Erro inesperado ao carregar samples\n");
+			return false;
+		}
+		return true;
 	}
 
 	void run_render(uint32_t n_samples) {
@@ -680,19 +589,19 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 				const clap_event_midi_t* midi = (const clap_event_midi_t*)hdr;
 				uint8_t status = midi->data[0] & 0xF0;
 				uint8_t note   = midi->data[1];
-				uint8_t vel	= midi->data[2];
+				uint8_t vel    = midi->data[2];
 
-				if (status == 0x90 && vel > 0) {  // Note ON
+				if (status == 0x90 && vel > 0) {  // Note ONc
 					auto it = self->rr_groups.find(note);
 					if (it != self->rr_groups.end()) {
-						// 1) coleta chokeGroups que devem ser aplicados para esta nota
+						// Coleta chokeGroups
 						std::vector<int> chokes;
 						for (RRGroup& group : it->second) {
 							if (group.chokeGroup > 0)
 								chokes.push_back(group.chokeGroup);
 						}
-					
-						// 2) aplica choke: remove todas as vozes ativas que pertencem a esses chokeGroups
+
+						// Aplica choke
 						if (!chokes.empty()) {
 							self->voices.erase(
 								std::remove_if(self->voices.begin(), self->voices.end(),
@@ -701,12 +610,12 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 									}),
 								self->voices.end());
 						}
-					
-						// 3) agora dispare todas as RRGroups (cada mic) para esta nota
+
+						// Dispara samples com velocity layer correto
 						for (RRGroup& group : it->second) {
-							const Sample* sample = group.getNextSample();
+							const Sample* sample = group.getSampleForVelocity(vel);  // MUDANÇA AQUI
 							if (!sample || sample->dataL.empty()) continue;
-						
+
 							Voice v;
 							v.sample = sample;
 							v.pos = 0;
@@ -715,10 +624,9 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 							v.chokeGroup = group.chokeGroup;
 							float v_norm = (float)vel / 127.0f;
 							v.velocity = v_norm * v_norm;
-						
+
 							self->voices.push_back(v);
-						
-							// limite de vozes para não bugar tudo na hora do play
+
 							if (self->voices.size() > MAX_VOICES)
 								self->voices.erase(self->voices.begin());
 						}
