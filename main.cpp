@@ -287,15 +287,15 @@ struct MyDrumKit {
 
 	bool loadSamplesFromFolder(const std::string& base) {
 		try {
-			// Kick (35 & 36)
+			// Kick (35 &1368
 			load_instrument_samples(35, "kick_in", 0, 1, 8);
 			load_instrument_samples(36, "kick_in", 0, 1, 8);
 			load_instrument_samples(35, "kick_out", 1, 1, 8);
 			load_instrument_samples(36, "kick_out", 1, 1, 8);
 			load_instrument_samples(35, "kick_overhead", 11, 1, 8, true);
 			load_instrument_samples(36, "kick_overhead", 11, 1, 8, true);
-			load_instrument_samples(35, "kick_room", 13, 3, 1, true);
-			load_instrument_samples(36, "kick_room", 13, 3, 1, true);
+			load_instrument_samples(35, "kick_room", 13, 1, 8, true);
+			load_instrument_samples(36, "kick_room", 13, 1, 8, true);
 
 			// Sidestick (37)
 			load_instrument_samples(37, "sidestick_top", 2, 1, 4);
@@ -623,7 +623,7 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 							v.output = group.output;
 							v.chokeGroup = group.chokeGroup;
 							float v_norm = (float)vel / 127.0f;
-							v.velocity = v_norm * v_norm;
+							v.velocity = v_norm; //* v_norm;
 
 							self->voices.push_back(v);
 
