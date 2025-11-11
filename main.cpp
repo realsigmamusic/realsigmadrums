@@ -670,9 +670,7 @@ static const clap_plugin_descriptor_t* factory_get_plugin_descriptor(const clap_
 	return (index == 0) ? &desc : nullptr;
 }
 
-static const clap_plugin_t* factory_create_plugin(const clap_plugin_factory_t* factory,
-												   const clap_host_t* host,
-												   const char* plugin_id) {
+static const clap_plugin_t* factory_create_plugin(const clap_plugin_factory_t* factory, const clap_host_t* host, const char* plugin_id) {
 	if (!host || strcmp(plugin_id, MYDRUMKIT_ID) != 0) return nullptr;
 
 	MyDrumKit* self = new MyDrumKit();
