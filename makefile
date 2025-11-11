@@ -13,13 +13,13 @@ $(PAK):
 	@mkdir -p build
 	$(CXX) -std=c++17 -O2 tools/soundmaker.cpp -o build/soundmaker
 	./build/soundmaker samples $(PAK)
-	@echo "✓ $(PLUGIN).pak gerado com sucesso"
+	@echo "$(PLUGIN).pak gerado com sucesso"
 
 install: $(PLUGIN).clap
 	mkdir -p ~/.clap/$(PLUGIN).clap
 	cp $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
 	cp $(PAK) ~/.clap/$(PLUGIN).clap/
-	@echo "✓ CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
+	@echo "CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
 
 clean:
 	rm -f $(PLUGIN).clap
