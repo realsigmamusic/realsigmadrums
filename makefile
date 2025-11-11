@@ -8,7 +8,7 @@ all: $(PLUGIN).clap
 $(PLUGIN).clap: main.cpp
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
 
-$(PAK):
+pak:
 	@echo "Empacotando samples..."
 	@mkdir -p build
 	$(CXX) -std=c++17 -O2 tools/soundmaker.cpp -o build/soundmaker
@@ -17,8 +17,8 @@ $(PAK):
 
 install: $(PLUGIN).clap
 	mkdir -p ~/.clap/$(PLUGIN).clap
-	cp $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
-	cp $(PAK) ~/.clap/$(PLUGIN).clap/
+	mv $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
+	mv $(PAK) ~/.clap/$(PLUGIN).clap/
 	@echo "CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
 
 clean:
