@@ -1,31 +1,32 @@
-CXXFLAGS += -fPIC -O2 -I./include -I/usr/include/clap -std=c++17
+CXXFLAGS += -fPIC -O2 -std=c++17
 LDFLAGS += -shared -lsndfile
 PLUGIN = realsigmadrums
 PAK = sounds.pak
+BUNDLE = $(PLUGIN).lv2
 
-all: $(PLUGIN).clap
-
-$(PLUGIN).clap: main.cpp
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDFLAGS)
+all:
+	$(CXX) -o $(PLUGIN).so main.cpp $(CXXFLAGS) $(LDFLAGS)
+	@echo "Plugin LV2 compilado: $(BUNDLE)"
 
 pak:
 	@echo "Empacotando samples..."
 	@mkdir -p build
 	$(CXX) -std=c++17 -O2 tools/soundmaker.cpp -o build/soundmaker
 	./build/soundmaker samples $(PAK)
-	@echo "$(PLUGIN).pak gerado com sucesso"
+	@echo "$(PAK) gerado com sucesso"
 
-install: $(PLUGIN).clap
-	mkdir -p ~/.clap/$(PLUGIN).clap
-	mv $(PLUGIN).clap ~/.clap/$(PLUGIN).clap/
-	mv $(PAK) ~/.clap/$(PLUGIN).clap/
-	@echo "CLAP plugin instalado em ~/.clap/$(PLUGIN).clap/"
+install:
+	@echo "Instalando plugin LV2..."
+	mkdir -p ~/.lv2/$(BUNDLE)
+	cp -r $(PLUGIN).so ~/.lv2/$(BUNDLE)/
+	cp manifest.ttl ~/.lv2/$(BUNDLE)/
+	cp realsigmadrums.ttl ~/.lv2/$(BUNDLE)/
+	cp $(PAK) ~/.lv2/$(BUNDLE)/
+	@echo "LV2 plugin instalado em ~/.lv2/$(BUNDLE)/"
 
 clean:
-	rm -f $(PLUGIN).clap
-	rm -f $(PAK).pak
+	rm -f $(PLUGIN).so
+	rm -f $(PAK)
 
 uninstall:
-	rm -rf ~/.clap/$(PLUGIN).clap/
-
-.PHONY: all install clean uninstall
+	rm -rf ~/.lv2/$(BUNDLE)
