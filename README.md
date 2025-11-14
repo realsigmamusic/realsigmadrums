@@ -4,6 +4,7 @@
 
 Sons reais, multi-mic, round robin e dinâmica natural.
 
+![Demonstração](docs/docs.gif)
 
 ## 📦 **Download**
 👉 [**Baixar a última versão**](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
