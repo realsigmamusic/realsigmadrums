@@ -1,0 +1,39 @@
+@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
+@prefix atom:  <http://lv2plug.in/ns/ext/atom#> .
+@prefix midi:  <http://lv2plug.in/ns/ext/midi#> .
+@prefix urid:  <http://lv2plug.in/ns/ext/urid#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix doap:  <http://usefulinc.com/ns/doap#> .
+@prefix foaf:  <http://xmlns.com/foaf/0.1/> .
+
+<http://realsigmamusic.com/plugins/realsigmadrums>
+	a lv2:Plugin , lv2:InstrumentPlugin ;
+	doap:name "Real Sigma Drums" ;
+	doap:license <https://opensource.org/licenses/MIT> ;
+	doap:maintainer [ foaf:name "Real Sigma Music" ] ;
+	lv2:requiredFeature urid:map ;
+	lv2:optionalFeature lv2:hardRTCapable ;
+	
+	lv2:port [
+		a lv2:InputPort , atom:AtomPort ;
+		lv2:index 0 ;
+		lv2:symbol "midi_in" ;
+		lv2:name "MIDI In" ;
+		atom:bufferType atom:Sequence ;
+		atom:supports midi:MidiEvent
+	] ,	
+	[ a lv2:OutputPort , lv2:AudioPort ; lv2:index 1 ;  lv2:symbol "out1" ;  lv2:name "Kick In" ] ,
+	[ a lv2:OutputPort , lv2:AudioPort ; lv2:index 2 ;  lv2:symbol "out2" ;  lv2:name "Kick Out"] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 3 ;  lv2:symbol "out3" ;  lv2:name "Snare top" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 4 ;  lv2:symbol "out4" ;  lv2:name "Snare Bottom" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 5 ;  lv2:symbol "out5" ;  lv2:name "Hihat" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 6 ;  lv2:symbol "out6" ;  lv2:name "Racktom 1" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 7 ;  lv2:symbol "out7" ;  lv2:name "Racktom 2" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 8 ;  lv2:symbol "out8" ;  lv2:name "Racktom 3" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 9 ;  lv2:symbol "out9" ;  lv2:name "Floortom 1" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 10 ; lv2:symbol "out10" ; lv2:name "Floortom 2" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 11 ; lv2:symbol "out11" ; lv2:name "Floortom 3" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 12 ; lv2:symbol "out12" ; lv2:name "Overhead L" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 13 ; lv2:symbol "out13" ; lv2:name "Overhead R" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 14 ; lv2:symbol "out14" ; lv2:name "Room L" ] ,
+    [ a lv2:OutputPort , lv2:AudioPort ; lv2:index 15 ; lv2:symbol "out15" ; lv2:name "Room R" ] .
