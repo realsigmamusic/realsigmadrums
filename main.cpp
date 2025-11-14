@@ -1,10 +1,12 @@
-// httpc://github.com/realsigmamusic/realsigmadrums
+// https://github.com/realsigmamusic/realsigmadrums
 
-#include <clap/clap.h>
-#include <clap/ext/audio-ports.h>
-#include <clap/ext/note-ports.h>
+#include <lv2/lv2plug.in/ns/lv2core/lv2.h>
+#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
+#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
+#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <sndfile.h>
-#include <fstream> 
+#include <fstream>
 #include <vector>
 #include <map>
 #include <cstring>
@@ -13,12 +15,30 @@
 #include <string>
 #include <algorithm>
 #include <cstdint>
-#include <stdlib.h>
 
-#define MYDRUMKIT_ID "realsigmadrums"
-#define MYDRUMKIT_NAME "Real Sigma Drums"
+#define REALSIGMADRUMS_URI "http://realsigmamusic.com/plugins/realsigmadrums"
 #define NUM_OUTPUTS 15
 #define MAX_VOICES 64
+
+// Port indices
+enum {
+	PORT_MIDI_IN = 0,
+	PORT_KICK_IN = 1,
+	PORT_KICK_OUT = 2,
+	PORT_SNARE_TOP = 3,
+	PORT_SNARE_BOTTOM = 4,
+	PORT_HIHAT = 5,
+	PORT_RACKTOM1 = 6,
+	PORT_RACKTOM2 = 7,
+	PORT_RACKTOM3 = 8,
+	PORT_FLOORTOM1 = 9,
+	PORT_FLOORTOM2 = 10,
+	PORT_FLOORTOM3 = 11,
+	PORT_OVERHEAD_L = 12,
+	PORT_OVERHEAD_R = 13,
+	PORT_ROOM_L = 14,
+	PORT_ROOM_R = 15
+};
 
 // Leitor de .pak
 struct PakReader {
@@ -46,7 +66,7 @@ struct PakReader {
 			index[path] = {offset, size};
 		}
 		
-		fprintf(stderr, "[Real Sigma Drums] PakReader Carregado: %u arquivos\n", count);
+		fprintf(stderr, "[Real Sigma Drums LV2] PakReader Carregado: %u arquivos\n", count);
 		return true;
 	}
 	
@@ -90,13 +110,11 @@ struct RRGroup {
 	int chokeGroup = 0;
 	
 	const Sample* getSampleForVelocity(uint8_t velocity) {
-		// Procura o layer apropriado para esta velocidade
 		for (auto& layer : velocity_layers) {
 			if (velocity >= layer.min_vel && velocity <= layer.max_vel) {
 				return layer.getNextSample();
 			}
 		}
-		// Fallback: retorna do primeiro layer se não encontrar
 		if (!velocity_layers.empty()) {
 			return velocity_layers[0].getNextSample();
 		}
@@ -113,19 +131,25 @@ struct Voice {
 	int chokeGroup = 0;
 };
 
+typedef struct {
+	LV2_URID atom_Sequence;
+	LV2_URID midi_MidiEvent;
+} MyDrumKitURIs;
+
 struct MyDrumKit {
-	const clap_host_t* host = nullptr;
 	std::map<int, std::vector<RRGroup>> rr_groups;
 	std::vector<Voice> voices;
-	float* outputs[NUM_OUTPUTS];
+	float* ports[16]; // 1 MIDI + 15 audio outputs
 	double sample_rate = 44100.0;
 	PakReader pak;
+	MyDrumKitURIs uris;
+	LV2_URID_Map* map;
+	std::string bundle_path;
 
 	MyDrumKit() {
-		for (int i = 0; i < NUM_OUTPUTS; ++i) outputs[i] = nullptr;
+		for (int i = 0; i < 16; ++i) ports[i] = nullptr;
 	}
 
-	// Função load_wav agora é membro estático da classe
 	static Sample load_wav(const char* data, size_t size, bool force_stereo = false) {
 		SF_INFO info{};
 		SF_VIRTUAL_IO vio;
@@ -203,11 +227,10 @@ struct MyDrumKit {
 		return s;
 	}
 
-	// Agora esta função é um método da classe MyDrumKit
 	void add_to_rr_group_with_velocity(int note, const char* relpath, int output, uint8_t min_vel, uint8_t max_vel, bool stereo = false) {
 		auto data = pak.read(relpath);
 		if (data.empty()) {
-			fprintf(stderr, "[Real Sigma Drums] Sample não encontrado: %s\n", relpath);
+			fprintf(stderr, "[Real Sigma Drums LV2] Sample não encontrado: %s\n", relpath);
 			return;
 		}
 
@@ -216,11 +239,9 @@ struct MyDrumKit {
 
 		auto& noteGroups = rr_groups[note];
 		
-		// Procura por um grupo com o mesmo output
 		auto group_it = std::find_if(noteGroups.begin(), noteGroups.end(),[&](const RRGroup& g){ return g.output == output; });
 		
 		if (group_it == noteGroups.end()) {
-			// Cria novo grupo
 			RRGroup g;
 			g.output = output;
 			
@@ -232,31 +253,26 @@ struct MyDrumKit {
 			g.velocity_layers.push_back(std::move(layer));
 			noteGroups.push_back(std::move(g));
 		} else {
-			// Procura layer existente ou cria novo
 			auto layer_it = std::find_if(group_it->velocity_layers.begin(),group_it->velocity_layers.end(),[&](const VelocityLayer& l) {
 				return l.min_vel == min_vel && l.max_vel == max_vel;
 			});
 			
 			if (layer_it == group_it->velocity_layers.end()) {
-				// Cria novo layer
 				VelocityLayer layer;
 				layer.min_vel = min_vel;
 				layer.max_vel = max_vel;
 				layer.samples.push_back(std::move(s));
 				group_it->velocity_layers.push_back(std::move(layer));
 			} else {
-				// Adiciona ao layer existente (round robin)
 				layer_it->samples.push_back(std::move(s));
 			}
 		}
 	}
 
-	// Agora esta função também é um método da classe MyDrumKit
-	void load_instrument_samples(int midi_note, const std::string& base_name, int output, int num_velocity_layers, int num_rr,bool stereo = false) {
+	void load_instrument_samples(int midi_note, const std::string& base_name, int output, int num_velocity_layers, int num_rr, bool stereo = false) {
 		for (int vel_layer = 1; vel_layer <= num_velocity_layers; ++vel_layer) {
 			uint8_t min_vel, max_vel;
 			
-			// Calcula ranges automaticamente baseado no número de layers
 			if (num_velocity_layers == 1) {
 				min_vel = 1; max_vel = 127;
 			} else if (num_velocity_layers == 2) {
@@ -272,7 +288,6 @@ struct MyDrumKit {
 				else if (vel_layer == 3) { min_vel = 64; max_vel = 95; }
 				else                     { min_vel = 96; max_vel = 127; }
 			} else {
-				// Fallback genérico para qualquer número de layers
 				int range = 127 / num_velocity_layers;
 				min_vel = (vel_layer - 1) * range + 1;
 				max_vel = (vel_layer == num_velocity_layers) ? 127 : vel_layer * range;
@@ -285,9 +300,9 @@ struct MyDrumKit {
 		}
 	}
 
-	bool loadSamplesFromFolder(const std::string& base) {
+	bool loadSamplesFromFolder() {
 		try {
-			// Kick (35 &1368
+			// Kick (35 & 36)
 			load_instrument_samples(35, "kick_in", 0, 1, 8);
 			load_instrument_samples(36, "kick_in", 0, 1, 8);
 			load_instrument_samples(35, "kick_out", 1, 1, 8);
@@ -380,18 +395,20 @@ struct MyDrumKit {
 			load_instrument_samples(55, "splash_overhead", 11, 1, 7, true);
 			load_instrument_samples(55, "splash_room", 13, 1, 7, true);
 
-			fprintf(stderr, "[Real Sigma Drums] %zu notas carregadas (CLAP)\n", rr_groups.size());
+			fprintf(stderr, "[Real Sigma Drums LV2] %zu notas carregadas\n", rr_groups.size());
 		} catch (...) {
-			fprintf(stderr, "[Real Sigma Drums] Erro inesperado ao carregar samples\n");
+			fprintf(stderr, "[Real Sigma Drums LV2] Erro ao carregar samples\n");
 			return false;
 		}
 		return true;
 	}
 
 	void run_render(uint32_t n_samples) {
-		for (int i = 0; i < NUM_OUTPUTS; ++i)
-			if (outputs[i])
-				std::memset(outputs[i], 0, sizeof(float) * n_samples);
+		// Limpa outputs de áudio (pula porta 0 que é MIDI)
+		for (int i = 1; i < 16; ++i) {
+			if (ports[i])
+				std::memset(ports[i], 0, sizeof(float) * n_samples);
+		}
 
 		for (auto it = voices.begin(); it != voices.end();) {
 			auto& v = *it;
@@ -399,17 +416,24 @@ struct MyDrumKit {
 				it = voices.erase(it);
 				continue;
 			}
+			
 			const float* dataL = v.sample->dataL.data();
 			const float* dataR = v.sample->is_stereo ? v.sample->dataR.data() : nullptr;
+			
+			// output + 1 porque porta 0 é MIDI
+			int audio_port_L = v.output + 1;
+			int audio_port_R = v.output + 2;
+			
 			for (uint32_t i = 0; i < n_samples && v.pos < v.length; ++i) {
-				if (v.output >= 0 && v.output < NUM_OUTPUTS && outputs[v.output]) {
-					outputs[v.output][i] += dataL[v.pos] * v.velocity;
+				if (audio_port_L < 16 && ports[audio_port_L]) {
+					ports[audio_port_L][i] += dataL[v.pos] * v.velocity;
 				}
-				if (dataR && v.output >= 0 && (v.output + 1) < NUM_OUTPUTS && outputs[v.output + 1]) {
-					outputs[v.output + 1][i] += dataR[v.pos] * v.velocity;
+				if (dataR && audio_port_R < 16 && ports[audio_port_R]) {
+					ports[audio_port_R][i] += dataR[v.pos] * v.velocity;
 				}
 				v.pos++;
 			}
+			
 			if (v.pos >= v.length)
 				it = voices.erase(it);
 			else
@@ -418,180 +442,76 @@ struct MyDrumKit {
 	}
 };
 
-// ---------- (CRÍTICO para ser reconhecido como instrumento) não mexa aqui não! ----------
-static uint32_t note_ports_count(const clap_plugin_t* plugin, bool is_input) {
-	return is_input ? 1u : 0u; // 1 entrada MIDI
-}
-
-static bool note_ports_get(const clap_plugin_t* plugin, uint32_t index, bool is_input, clap_note_port_info_t* info) {
-	if (!is_input || index != 0) return false;
-
-	memset(info, 0, sizeof(*info));
-	info->id = 0;
-	snprintf(info->name, sizeof(info->name), "MIDI In");
-	info->supported_dialects = CLAP_NOTE_DIALECT_MIDI;
-	info->preferred_dialect = CLAP_NOTE_DIALECT_MIDI;
-	return true;
-}
-
-static const clap_plugin_note_ports_t note_ports_ext = {
-	.count = note_ports_count,
-	.get   = note_ports_get
-};
-
-// ---------- CLAP: audio ports extension ----------
-static uint32_t audio_ports_count(const clap_plugin_t* plugin, bool is_input) {
-	return is_input ? 0u : (uint32_t)NUM_OUTPUTS;
-}
-
-static bool audio_ports_get(const clap_plugin_t* plugin, uint32_t index, bool is_input, clap_audio_port_info_t* info) {
-	if (is_input) return false;
-	if (index >= (uint32_t)NUM_OUTPUTS) return false;
-
-	// Nomes dos outputs
-	static const char* names[NUM_OUTPUTS] = {
-		"Kick In",
-		"Kick Out",
-		"Snare Top",
-		"Snare Bottom",
-		"HiHat",
-		"Racktom 1",
-		"Racktom 2",
-		"Racktom 3",
-		"Floortom 1",
-		"Floortom 2",
-		"Floortom 3",
-		"Overhead L",
-		"Overhead R",
-		"Room L",
-		"Room R"
-	};
-
-	memset(info, 0, sizeof(*info));
-	info->id = index;
-	snprintf(info->name, sizeof(info->name), "%s", names[index]);
-	info->channel_count = 1;
-	info->port_type = CLAP_PORT_MONO;
-
-	if (index == 0) {
-		info->flags = CLAP_AUDIO_PORT_IS_MAIN;
-	} else {
-		info->flags = 0;
+// LV2 Callbacks
+static LV2_Handle instantiate(const LV2_Descriptor* descriptor, double rate, const char* bundle_path, const LV2_Feature* const* features) {
+	MyDrumKit* self = new MyDrumKit();
+	self->sample_rate = rate;
+	self->bundle_path = bundle_path;
+	
+	// Map URIDs
+	for (int i = 0; features[i]; ++i) {
+		if (!strcmp(features[i]->URI, LV2_URID__map)) {
+			self->map = (LV2_URID_Map*)features[i]->data;
+		}
 	}
-
-	info->in_place_pair = CLAP_INVALID_ID;
-
-	return true;
+	
+	if (!self->map) {
+		fprintf(stderr, "[Real Sigma Drums LV2] ERRO: Host não forneceu LV2_URID_Map\n");
+		delete self;
+		return nullptr;
+	}
+	
+	self->uris.atom_Sequence = self->map->map(self->map->handle, LV2_ATOM__Sequence);
+	self->uris.midi_MidiEvent = self->map->map(self->map->handle, LV2_MIDI__MidiEvent);
+	
+	fprintf(stderr, "[Real Sigma Drums LV2] Instantiate SR=%.1f, bundle=%s\n", rate, bundle_path);
+	return (LV2_Handle)self;
 }
 
-static const clap_plugin_audio_ports_t audio_ports_ext = {
-	.count = audio_ports_count,
-	.get   = audio_ports_get
-};
-
-// ---------- CLAP plugin callbacks ----------
-static bool my_init(const clap_plugin_t* plugin) {
-	fprintf(stderr, "[Real Sigma Drums] CLAP init\n");
-	return true;
+static void connect_port(LV2_Handle instance, uint32_t port, void* data) {
+	MyDrumKit* self = (MyDrumKit*)instance;
+	if (port < 16) {
+		self->ports[port] = (float*)data;
+	}
 }
 
-static void my_destroy(const clap_plugin_t* plugin) {
-	MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
-	fprintf(stderr, "[Real Sigma Drums] CLAP destroy\n");
-	if (self) delete self;
-	delete plugin;
-}
-
-static bool my_activate(const clap_plugin_t* plugin, double sr, uint32_t min_frames, uint32_t max_frames) {
-	MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
-	if (!self) return false;
-	self->sample_rate = sr;
-	fprintf(stderr, "[Real Sigma Drums] CLAP activate SR=%.1f, min=%u, max=%u\n", sr, min_frames, max_frames);
-
+static void activate(LV2_Handle instance) {
+	MyDrumKit* self = (MyDrumKit*)instance;
+	
 	if (self->rr_groups.empty()) {
-		const char* home = getenv("HOME");
-		if (!home) home = ".";
-		std::string pak_path = std::string(home) + "/.clap/realsigmadrums.clap/sounds.pak";
-		
-		fprintf(stderr, "[Real Sigma Drums] Abrindo pak: %s\n", pak_path.c_str());
+		std::string pak_path = self->bundle_path + "/sounds.pak";
+		fprintf(stderr, "[Real Sigma Drums LV2] Carregando pak: %s\n", pak_path.c_str());
 		
 		if (!self->pak.open(pak_path)) {
-			fprintf(stderr, "[Real Sigma Drums] ERRO: não conseguiu abrir %s\n", pak_path.c_str());
-			return false;
+			fprintf(stderr, "[Real Sigma Drums LV2] ERRO: não conseguiu abrir %s\n", pak_path.c_str());
+			return;
 		}
+		
+		if (!self->loadSamplesFromFolder()) {
+			fprintf(stderr, "[Real Sigma Drums LV2] AVISO: Erro ao carregar samples\n");
+		}
+	}
 	
-		if (!self->loadSamplesFromFolder("")) {
-			fprintf(stderr, "[Real Sigma Drums] AVISO: Erro ao carregar samples\n");
-		}
-	}
-	return true;
+	fprintf(stderr, "[Real Sigma Drums LV2] Activate\n");
 }
 
-static void my_deactivate(const clap_plugin_t* plugin) {
-	fprintf(stderr, "[Real Sigma Drums] CLAP deactivate\n");
-}
-
-static bool my_start_processing(const clap_plugin_t* plugin) {
-	fprintf(stderr, "[Real Sigma Drums] CLAP start_processing\n");
-	return true;
-}
-
-static void my_stop_processing(const clap_plugin_t* plugin) {
-	fprintf(stderr, "[Real Sigma Drums] CLAP stop_processing\n");
-}
-
-static void my_reset(const clap_plugin_t* plugin) {
-	MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
-	if (self) {
-		self->voices.clear();
-		fprintf(stderr, "[Real Sigma Drums] CLAP reset\n");
-	}
-}
-
-static const void* my_get_extension(const clap_plugin_t* plugin, const char* id) {
-	if (!strcmp(id, CLAP_EXT_AUDIO_PORTS)) return &audio_ports_ext;
-	if (!strcmp(id, CLAP_EXT_NOTE_PORTS)) return &note_ports_ext;
-	return nullptr;
-}
-
-static void my_on_main_thread(const clap_plugin_t* plugin) { }
-
-static clap_process_status my_process(const clap_plugin_t* plugin, const clap_process_t* process) {
-	MyDrumKit* self = (MyDrumKit*)plugin->plugin_data;
-	if (!self || !process) return CLAP_PROCESS_ERROR;
-
-	uint32_t nframes = process->frames_count;
-	if (nframes == 0) return CLAP_PROCESS_CONTINUE;
-
-	// Conectar saídas de áudio
-	for (int i = 0; i < NUM_OUTPUTS; ++i) self->outputs[i] = nullptr;
-
-	if (process->audio_outputs_count > 0) {
-		for (uint32_t i = 0; i < process->audio_outputs_count && i < (uint32_t)NUM_OUTPUTS; ++i) {
-			const clap_audio_buffer_t* buf = &process->audio_outputs[i];
-			if (buf && buf->channel_count > 0 && buf->data32) {
-				self->outputs[i] = buf->data32[0];
-			}
-		}
-	}
-
-	// Processar eventos MIDI
-	if (process->in_events) {
-		const clap_input_events_t* in = process->in_events;
-		uint32_t event_count = in->size(in);
-
-		for (uint32_t i = 0; i < event_count; ++i) {
-			const clap_event_header_t* hdr = in->get(in, i);
-			if (!hdr) continue;
-
-			// Processar evento MIDI
-			if (hdr->space_id == CLAP_CORE_EVENT_SPACE_ID && hdr->type == CLAP_EVENT_MIDI) {
-				const clap_event_midi_t* midi = (const clap_event_midi_t*)hdr;
-				uint8_t status = midi->data[0] & 0xF0;
-				uint8_t note   = midi->data[1];
-				uint8_t vel    = midi->data[2];
-
-				if (status == 0x90 && vel > 0) {  // Note ONc
+static void run(LV2_Handle instance, uint32_t n_samples) {
+	MyDrumKit* self = (MyDrumKit*)instance;
+	if (!self) return;
+	
+	// Processar eventos MIDI da porta 0
+	const LV2_Atom_Sequence* seq = (const LV2_Atom_Sequence*)self->ports[PORT_MIDI_IN];
+	
+	if (seq) {
+		LV2_ATOM_SEQUENCE_FOREACH(seq, ev) {
+			if (ev->body.type == self->uris.midi_MidiEvent) {
+				const uint8_t* const msg = (const uint8_t*)(ev + 1);
+				uint8_t status = msg[0] & 0xF0;
+				
+				if (status == 0x90 && msg[2] > 0) {  // Note ON
+					uint8_t note = msg[1];
+					uint8_t vel = msg[2];
+					
 					auto it = self->rr_groups.find(note);
 					if (it != self->rr_groups.end()) {
 						// Coleta chokeGroups
@@ -611,9 +531,9 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 								self->voices.end());
 						}
 
-						// Dispara samples com velocity layer correto
+						// Dispara samples
 						for (RRGroup& group : it->second) {
-							const Sample* sample = group.getSampleForVelocity(vel);  // MUDANÇA AQUI
+							const Sample* sample = group.getSampleForVelocity(vel);
 							if (!sample || sample->dataL.empty()) continue;
 
 							Voice v;
@@ -623,7 +543,7 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 							v.output = group.output;
 							v.chokeGroup = group.chokeGroup;
 							float v_norm = (float)vel / 127.0f;
-							v.velocity = v_norm; //* v_norm;
+							v.velocity = v_norm;
 
 							self->voices.push_back(v);
 
@@ -635,87 +555,38 @@ static clap_process_status my_process(const clap_plugin_t* plugin, const clap_pr
 			}
 		}
 	}
-
+	
 	// Renderizar áudio
-	self->run_render(nframes);
-
-	return CLAP_PROCESS_CONTINUE;
+	self->run_render(n_samples);
 }
 
-// ---------- Factory ----------
-static uint32_t factory_get_plugin_count(const clap_plugin_factory_t* f) {
-	return 1u;
+static void deactivate(LV2_Handle instance) {
+	fprintf(stderr, "[Real Sigma Drums LV2] Deactivate\n");
 }
 
-static const clap_plugin_descriptor_t* factory_get_plugin_descriptor(const clap_plugin_factory_t* f, uint32_t index) {
-	static const char* features[] = {
-		CLAP_PLUGIN_FEATURE_INSTRUMENT,
-		CLAP_PLUGIN_FEATURE_DRUM,
-		CLAP_PLUGIN_FEATURE_SAMPLER,
-		nullptr
-	};
-
-	static const clap_plugin_descriptor_t desc = {
-		CLAP_VERSION_INIT,
-		MYDRUMKIT_ID,
-		MYDRUMKIT_NAME,
-		"Real Sigma Music",
-		"https://github.com/realsigmamusic/realsigmadrums",
-		"",
-		"",
-		"1.5.0",
-		"Acoustic drum sampler",
-		features
-	};
-	return (index == 0) ? &desc : nullptr;
+static void cleanup(LV2_Handle instance) {
+	MyDrumKit* self = (MyDrumKit*)instance;
+	fprintf(stderr, "[Real Sigma Drums LV2] Cleanup\n");
+	if (self) delete self;
 }
 
-static const clap_plugin_t* factory_create_plugin(const clap_plugin_factory_t* factory, const clap_host_t* host, const char* plugin_id) {
-	if (!host || strcmp(plugin_id, MYDRUMKIT_ID) != 0) return nullptr;
-
-	MyDrumKit* self = new MyDrumKit();
-	self->host = host;
-
-	clap_plugin_t* p = new clap_plugin_t;
-	memset(p, 0, sizeof(clap_plugin_t));
-	p->desc = factory_get_plugin_descriptor(nullptr, 0);
-	p->plugin_data = self;
-	p->init = my_init;
-	p->destroy = my_destroy;
-	p->activate = my_activate;
-	p->deactivate = my_deactivate;
-	p->start_processing = my_start_processing;
-	p->stop_processing = my_stop_processing;
-	p->reset = my_reset;
-	p->process = my_process;
-	p->get_extension = my_get_extension;
-	p->on_main_thread = my_on_main_thread;
-
-	fprintf(stderr, "[Real Sigma Drums] Plugin carregado\n");
-	return p;
+static const void* extension_data(const char* uri) {
+	return nullptr;
 }
 
-static const clap_plugin_factory_t factory = {
-	factory_get_plugin_count,
-	factory_get_plugin_descriptor,
-	factory_create_plugin
+static const LV2_Descriptor descriptor = {
+	REALSIGMADRUMS_URI,
+	instantiate,
+	connect_port,
+	activate,
+	run,
+	deactivate,
+	cleanup,
+	extension_data
 };
 
-// ---------- Entry point ----------
 extern "C" {
-	const clap_plugin_entry_t clap_entry = {
-		CLAP_VERSION_INIT,
-		[](const char* plugin_path) -> bool {
-			fprintf(stderr, "[Real Sigma Drums] CLAP init: %s\n", plugin_path ? plugin_path : "null");
-			return true;
-		},
-		[]() -> void {
-			fprintf(stderr, "[Real Sigma Drums] CLAP deinit\n");
-		},
-		[](const char* factory_id) -> const void* {
-			fprintf(stderr, "[Real Sigma Drums] get_factory: %s\n", factory_id);
-			if (!strcmp(factory_id, CLAP_PLUGIN_FACTORY_ID)) return &factory;
-			return nullptr;
-		}
-	};
+	LV2_SYMBOL_EXPORT const LV2_Descriptor* lv2_descriptor(uint32_t index) {
+		return (index == 0) ? &descriptor : nullptr;
+	}
 }
