@@ -1,20 +1,18 @@
 # 🥁 **Real Sigma Drums**
 
-🎶 **Plugin de bateria acústica CLAP**, pronto para uso em qualquer DAW compatível com CLAP.
-Sons reais, multi-mic, round robin e dinâmica natural — tudo empacotado e pronto para tocar.
+🎶 **Plugin de bateria acústica lv2**, pronto para uso em qualquer DAW compatível com lv2.
 
-[![CLAP](https://img.shields.io/badge/CLAP-Plugin-blue?style=for-the-badge\&logo=data\:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAflBMVEUAAAD///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////+u+j2SAAAAKXRSTlMAAQQGCxwqMUFJS2h0foKSpbnF1uDp7fL0/P3+/v7+/v7+/v7+/v6/fCjjAAAAfklEQVQY02MQBQYGBhZWNnZ2BgYGJmYOTm5iZGBgaGZqenp5WZgYGJhZWVlFZXV1dXW1lZWVtXV1dXV1dXW1tbW1tXW1tbW1tbW1tbW1tbW1tbW1tXV1dXV1dXV1dXW1tbW1tXV1dXV1dXV1dXW1tbW1tXV1dXV1dXV1dXV1dXW1tbW1tbW1tXV1dXV1dXV1fAAMumB55kHqI+AAAAAElFTkSuQmCC)](https://github.com/free-audio/clap) [![Release](https://img.shields.io/github/v/release/realsigmamusic/realsigmadrums?style=for-the-badge\&color=success)](https://github.com/realsigmamusic/realsigmadrums/releases/latest) [![License](https://img.shields.io/badge/license-MIT-lightgrey?style=for-the-badge)](#)
+Sons reais, multi-mic, round robin e dinâmica natural.
 
-<img width="100%" alt="Real Sigma Drums Screenshot" src="https://github.com/user-attachments/assets/31393da0-3377-4e9e-9ce0-e77d225986bc" />
 
 ## 📦 **Download**
 👉 [**Baixar a última versão**](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
 
-
-## 🧰 **Pacote**
 ```
-realsigmadrums.clap/
-├── plugin.clap
+realsigmadrums.lv2/
+├── manifest.ttl
+├── realsigmadrums.ttl
+├── realsigmadrums.so
 └── sounds.pak
 ```
 
@@ -29,62 +27,56 @@ chmod +x install.sh
 ```
 O plugin será instalado em:
 ```
-~/.clap/realsigmadrums.clap/
+~/.lv2/realsigmadrums.lv2/
 ```
 
-## 🪘 **Mapeamento MIDI**
-| Nota       | Instrumento                | Saídas                        |
-| ---------- | -------------------------- | ----------------------------- |
-| 35–36      | Kick                       | In, Out, OH L/R, Room L/R     |
-| 37         | Sidestick                  | Top, Bottom, OH L/R, Room L/R |
-| 38, 40     | Snare                      | Top, Bottom, OH L/R, Room L/R |
-| 42, 44, 46 | Hi-Hat (closed/pedal/open) | Mic, OH L/R, Room L/R         |
-| 50, 48, 47 | Rack Toms                  | Mic, OH L/R, Room L/R         |
-| 45, 43, 41 | Floor Toms                 | Mic, OH L/R, Room L/R         |
-| 49, 57     | Crashes                    | OH L/R, Room L/R              |
-| 51, 53, 59 | Ride (bow/bell/edge)       | OH L/R, Room L/R              |
-| 52, 55     | China, Splash              | OH L/R, Room L/R              |
-
-## 🎧 **Aviso Importante**
-⚠️ Se o plugin for carregado em **modo estéreo simples**, **apenas o bumbo (kick)** será ouvido.
+## ⚠️ **Aviso Importante**
+Se o plugin for carregado em **modo estéreo simples**, **apenas o bumbo (kick)** será ouvido.
 Para escutar todos os instrumentos:
 
 * Use um **host que suporte múltiplas saídas** (multi-out);
 * Ative as faixas adicionais do plugin.
 
-## 🔊 **Canais de Saída**
-| Nº | Canal        |
-| -- | ------------ |
-| 1  | Kick In      |
-| 2  | Kick Out     |
-| 3  | Snare Top    |
-| 4  | Snare Bottom |
-| 5  | Hi-Hat       |
-| 6  | Racktom 1    |
-| 7  | Racktom 2    |
-| 8  | Racktom 3    |
-| 9  | Floortom 1   |
-| 10 | Floortom 2   |
-| 11 | Floortom 3   |
-| 12 | Overhead L   |
-| 13 | Overhead R   |
-| 14 | Room L       |
-| 15 | Room R       |
+## 🎵 Mapeamento MIDI
+```
+35 Kick
+36 Kick
+37 Sidestick
+38 Snare
+40 Snare FX
+41 Floortom 3
+43 Floortom 2
+45 Floortom 1
+42 HiHat Closed
+44 HiHat Pedal
+46 HiHat Open
+47 Racktom 3
+48 Racktom 2
+50 Racktom 1
+49 Crash 1
+57 Crash 2
+51 Ride Bow
+53 Ride Bell
+59 Ride Edge
+52 China
+55 Splash
+```
 
 ## 🧱 **Status do Projeto**
-- [x] Plugin CLAP
-- [x] 15 canais multi-mic
+- [x] Plugin lv2
+- [x] 16 canais multi-mic
 - [x] Round robin
 - [x] Samples empacotados em .pak
 - [x] Choke groups (hi-hat)
-- [x] Curva de velocity quadrática
+- [x] Curva de velocity
 - [x] Samples estéreo nos overheads/room
 - [x] Velocity layers
 - [x] Linux build
-- [ ] Windows build
-- [ ] macOS build
 - [ ] Interface gráfica
 
 ## 🧠 **Licença**
 Distribuído sob a licença **MIT**.
 Veja o arquivo `LICENSE` para mais detalhes.
+
+**Desenvolvido por Real Sigma Music**  
+🔗 https://github.com/realsigmamusic/realsigmadrums
