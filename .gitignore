@@ -1,4 +1,4 @@
 /dist/
-*.clap
+*.so
 *.pak
 .vscode/
