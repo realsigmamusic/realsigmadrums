@@ -10,11 +10,12 @@ Sons reais, multi-mic, round robin e dinâmica natural.
 👉 [**Baixar a última versão**](https://github.com/realsigmamusic/realsigmadrums/releases/latest)
 
 ```
-realsigmadrums.lv2/
-├── manifest.ttl
-├── realsigmadrums.ttl
-├── realsigmadrums.so
-└── sounds.pak
+Real.Sigma.Drums.zip/
+├── install.sh
+├── realsigmadrums.txt
+└── realsigmadrums.lv2/
+    ├── plugin.so
+    └── sounds.pak
 ```
 
 ## ⚙️ **Instalação (Linux)**
